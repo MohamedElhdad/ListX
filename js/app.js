@@ -80,15 +80,15 @@ function persist() {
   storage.set("tasks", JSON.stringify(tasks));
 }
 const PALETTES = {
-  dark: "#101816",
-  "dark-blue": "#101827",
-  graphite: "#1b191f",
-  obsidian: "#08090b",
-  petrol: "#0c1b20",
-  espresso: "#1b1512",
+  dark: "#111a17",
+  "dark-blue": "#111725",
+  graphite: "#19181e",
+  obsidian: "#0a0b0d",
+  petrol: "#0d1c20",
+  espresso: "#1c1714",
   light: "#f7f5ef",
-  "light-blue": "#f0f5fc",
-  "light-sage": "#eff5f0",
+  "light-blue": "#f0f4fa",
+  "light-sage": "#faf1f5",
 };
 let appearance = { font: "inter", size: "comfortable" };
 try {
@@ -506,7 +506,16 @@ function installReorder(row, taskId) {
   }
   function begin(x, y) {
     if (!pressed || $("#task-list").children.length < 2) return;
-    dragging = { id: taskId, row, y, scrollFrame: null };
+    const rect = row.getBoundingClientRect();
+    const preview = row.cloneNode(true);
+    preview.className = row.className + " drag-preview";
+    preview.removeAttribute("data-id");
+    preview.querySelectorAll("[id]").forEach(element => element.removeAttribute("id"));
+    preview.setAttribute("aria-hidden", "true");
+    preview.inert = true;
+    Object.assign(preview.style, { left: `${rect.left}px`, top: "0", width: `${rect.width}px`, height: `${rect.height}px`, transform: `translate3d(0, ${rect.top}px, 0) scale(1.015)` });
+    document.body.append(preview);
+    dragging = { id: taskId, row, y, preview, grab: y - rect.top, scrollFrame: null, cancel: () => finish(true) };
     row.classList.add("is-dragging");
     document.body.classList.add("is-reordering");
     $(".task-panel").classList.add("reorder-mode");
@@ -515,6 +524,7 @@ function installReorder(row, taskId) {
     navigator.vibrate?.(20);
     function autoScroll() {
       if (!dragging) return;
+      dragging.preview.style.transform = `translate3d(0, ${dragging.y - dragging.grab}px, 0) scale(1.015)`;
       const margin = 90,
         y = dragging.y;
       const delta =
@@ -532,15 +542,21 @@ function installReorder(row, taskId) {
     dragging.scrollFrame = requestAnimationFrame(autoScroll);
   }
   function place(y) {
-    const rows = Array.from($("#task-list").children).filter(
-      (item) => item !== row,
-    );
-    const next = rows.find((item) => {
-      const r = item.getBoundingClientRect();
-      return y < r.top + r.height / 2;
+    const list = $("#task-list");
+    const others = Array.from(list.children).filter(item => item !== row);
+    const next = others.find(item => {
+      return y < list.getBoundingClientRect().top + item.offsetTop + item.offsetHeight / 2;
     });
-    if (next) $("#task-list").insertBefore(row, next);
-    else $("#task-list").append(row);
+    if (row.nextElementSibling === (next || null)) return;
+    const before = new Map(others.map(item => [item, item.getBoundingClientRect().top]));
+    for (const item of others) item.getAnimations().forEach(animation => animation.cancel());
+    if (next) list.insertBefore(row, next); else list.append(row);
+    if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      for (const item of others) {
+        const delta = before.get(item) - item.getBoundingClientRect().top;
+        if (Math.abs(delta) > 1) item.animate([{ transform: `translateY(${delta}px)` }, { transform: "translateY(0)" }], { duration: 230, easing: "cubic-bezier(.2,.75,.25,1)" });
+      }
+    }
   }
   function move(x, y, event) {
     if (!pressed) return;
@@ -558,18 +574,27 @@ function installReorder(row, taskId) {
     clearTimer();
     pressed = false;
     if (dragging?.row !== row) return;
-    cancelAnimationFrame(dragging.scrollFrame);
+    const state = dragging;
+    cancelAnimationFrame(state.scrollFrame);
     dragging = null;
-    row.classList.remove("is-dragging");
     document.body.classList.remove("is-reordering");
     $(".task-panel").classList.remove("reorder-mode");
-    if (!cancelled) {
-      const order = Array.from($("#task-list").children).map(
-        (item) => item.dataset.id,
-      );
-      applyVisibleOrder(order);
-    } else render();
+    const order = Array.from($("#task-list").children).map(item => item.dataset.id);
+    if (cancelled) { state.preview.remove(); render(); return; }
+    const start = state.preview.getBoundingClientRect();
+    applyVisibleOrder(order);
+    const target = Array.from($("#task-list").children).find(item => item.dataset.id === taskId);
+    if (!target || matchMedia("(prefers-reduced-motion: reduce)").matches) { state.preview.remove(); return; }
+    const end = target.getBoundingClientRect();
+    target.classList.add("drop-settling");
+    const animation = state.preview.animate([
+      { transform: `translate3d(0, ${start.top}px, 0) scale(1.015)` },
+      { transform: `translate3d(0, ${end.top}px, 0) scale(1)` }
+    ], { duration: 190, easing: "cubic-bezier(.2,.75,.25,1)", fill: "forwards" });
+    const cleanup = () => { state.preview.remove(); target.classList.remove("drop-settling"); };
+    animation.finished.then(cleanup, cleanup);
   }
+
   row.addEventListener(
     "touchstart",
     (event) => {
@@ -637,13 +662,7 @@ function installReorder(row, taskId) {
   });
 }
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && dragging) {
-    cancelAnimationFrame(dragging.scrollFrame);
-    dragging = null;
-    document.body.classList.remove("is-reordering");
-    $(".task-panel").classList.remove("reorder-mode");
-    render();
-  }
+  if (event.key === "Escape" && dragging) dragging.cancel();
 });
 updateAdd();
 render();

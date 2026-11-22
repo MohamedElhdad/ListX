@@ -1968,3 +1968,49 @@ body {
  .settings-dialog { max-height:calc(100dvh - 28px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)); }
 }
 @media(prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important;transition:none!important;animation:none!important; } }
+
+[data-theme="dark"] {--bg:#111a17;--sidebar:#15201c;--surface:#192720;--raised:#203128;--hover:#293d32;--border:#354a3d;--text:#edf5ee;--muted:#a8baad;--accent:#add4b4;--accent-ink:#203c27;--ring:#add4b4;--danger-fill:#4b2b2b;--danger-border:#93554d;--danger-text:#ffd3cb;}
+
+[data-theme="dark-blue"] {--bg:#111725;--sidebar:#151e30;--surface:#192439;--raised:#213049;--hover:#2a3b56;--border:#394c69;--text:#edf2fc;--muted:#aab9ce;--accent:#abc6f1;--accent-ink:#203451;--ring:#abc6f1;--danger-fill:#4b2b2b;--danger-border:#93554d;--danger-text:#ffd3cb;}
+
+[data-theme="graphite"] {--bg:#19181e;--sidebar:#1f1d25;--surface:#25222d;--raised:#302c39;--hover:#3a3545;--border:#4a4357;--text:#f4f0f9;--muted:#bbb0c8;--accent:#cbb9e7;--accent-ink:#362847;--ring:#cbb9e7;--danger-fill:#4b2b2b;--danger-border:#93554d;--danger-text:#ffd3cb;}
+
+[data-theme="obsidian"] {--bg:#0a0b0d;--sidebar:#111316;--surface:#171a1e;--raised:#20242a;--hover:#2b3038;--border:#3b424c;--text:#f2f4f7;--muted:#adb6c3;--accent:#ccd4df;--accent-ink:#24303f;--ring:#ccd4df;--danger-fill:#4b2b2b;--danger-border:#93554d;--danger-text:#ffd3cb;}
+
+[data-theme="petrol"] {--bg:#0d1c20;--sidebar:#102329;--surface:#152e34;--raised:#1d3b41;--hover:#27494f;--border:#395b61;--text:#edf7f6;--muted:#aac4c5;--accent:#9fd4ce;--accent-ink:#173d39;--ring:#9fd4ce;--danger-fill:#4b2b2b;--danger-border:#93554d;--danger-text:#ffd3cb;}
+
+[data-theme="espresso"] {--bg:#1c1714;--sidebar:#231d18;--surface:#2b231e;--raised:#372c24;--hover:#45372d;--border:#5a4739;--text:#f8f0e8;--muted:#c6b5a6;--accent:#dfc19c;--accent-ink:#3d2c1c;--ring:#dfc19c;--danger-fill:#4b2b2b;--danger-border:#93554d;--danger-text:#ffd3cb;}
+
+[data-theme="light"] {--bg:#f8f5ef;--sidebar:#f0ebe1;--surface:#fffdf8;--raised:#f2ede3;--hover:#eae2d4;--border:#d7cec0;--text:#332d25;--muted:#746858;--accent:#ddcbaa;--accent-ink:#493821;--ring:#493821;--danger-fill:#fff0ed;--danger-border:#d7a194;--danger-text:#a33223;}
+
+[data-theme="light-blue"] {--bg:#f0f4fa;--sidebar:#e8eef7;--surface:#fcfdff;--raised:#eaf0f9;--hover:#dde7f5;--border:#c8d5e8;--text:#263a54;--muted:#5b6d87;--accent:#c6d8f3;--accent-ink:#233f65;--ring:#233f65;--danger-fill:#fff0ed;--danger-border:#d7a194;--danger-text:#a33223;}
+
+[data-theme="light-sage"] {--bg:#faf1f5;--sidebar:#f3e6ec;--surface:#fffbfd;--raised:#f7eaf0;--hover:#efdce5;--border:#dcc1ce;--text:#4a293c;--muted:#805e70;--accent:#edc8d9;--accent-ink:#572a41;--ring:#572a41;--danger-fill:#fff0ed;--danger-border:#d7a194;--danger-text:#a33223;}
+
+/* Revision 4: compact mobile chrome and spatial drag feedback. */
+#task-input { font-size:16px; height:44px; }
+.task-actions { gap:0; margin-left:auto; }
+.task-actions button { width:34px; min-width:34px; height:44px; min-height:44px; }
+.task-actions svg { width:15px; height:15px; }
+.task.is-dragging { position:relative; z-index:auto; border:0; border-bottom:1px solid var(--border); border-radius:0; opacity:1; background:var(--hover); box-shadow:inset 3px 0 var(--accent); }
+.task.is-dragging > * { visibility:hidden; }
+.drag-preview { position:fixed!important;z-index:1000;pointer-events:none; margin:0; border:1px solid var(--ring)!important; border-radius:12px; background:var(--surface)!important;box-shadow:0 20px 50px #0005,0 4px 12px #0002;opacity:.98;will-change:transform; }
+.drop-settling { opacity:0; }
+@media(max-width:650px) {
+ .sidebar { padding-top:calc(20px + env(safe-area-inset-top,0px));padding-right:76px; }
+ #settings-button { position:absolute;right:20px;top:calc(15px + env(safe-area-inset-top,0px));width:40px;height:40px; }
+ .topbar { height:44px;padding-top:0; }
+ #task-input { font-size:16px; }
+ .task { padding:12px 7px 12px 12px;gap:8px; }
+ .task-actions { margin-left:0;gap:0; }
+ .task-actions button { width:32px;min-width:32px;min-height:44px;padding:0; }
+ .task-actions svg { width:14px;height:14px; }
+ .drag-handle { min-width:10px;width:10px; }
+ .drag-handle svg { width:10px; }
+}
+@media(max-width:350px) {
+ .sidebar { padding-left:18px;padding-right:69px; }
+ #settings-button { right:15px; }
+ .task { padding-left:8px;padding-right:4px;gap:6px; }
+ .task-actions button { width:30px;min-width:30px; }
+}
