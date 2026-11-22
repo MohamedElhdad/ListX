@@ -1,6 +1,6 @@
 "use strict";
 const CACHE_PREFIX = `listx:${self.registration.scope}:`;
-const CACHE_NAME = CACHE_PREFIX + "v52-motion";
+const CACHE_NAME = CACHE_PREFIX + "v53-drag-lifecycle";
 const ASSETS = [
   "./",
   "./index.html",

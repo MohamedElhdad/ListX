@@ -86,7 +86,7 @@ const PALETTES = {
   obsidian: "#0a0b0d",
   petrol: "#0d1c20",
   espresso: "#1c1714",
-  light: "#f7f5ef",
+  light: "#f8f5ef",
   "light-blue": "#f0f4fa",
   "light-sage": "#faf1f5",
 };
@@ -269,6 +269,7 @@ function taskRow(task) {
   return li;
 }
 function render() {
+  cancelReorder(false);
   const total = tasks.length,
     done = tasks.filter((t) => t.done).length,
     active = total - done;
@@ -493,177 +494,216 @@ function applyVisibleOrder(order) {
   );
   commit("Task order updated");
 }
-let dragging = null;
+// A single gesture owns the timer, floating card and event cleanup, even if
+// a search, filter or another tab replaces the original task row.
+let reorderGesture = null;
+let settlingCleanup = null;
+function cancelReorder(redraw = true) {
+  settlingCleanup?.();
+  const state = reorderGesture;
+  if (state) state.finish(true, redraw);
+  // Also repair any stale visual left by a cancelled browser animation.
+  document.querySelectorAll('.drag-preview').forEach(element => element.remove());
+  document.querySelectorAll('.is-dragging,.drop-settling').forEach(element => element.classList.remove('is-dragging', 'drop-settling'));
+  document.body.classList.remove('is-reordering');
+  $('.task-panel').classList.remove('reorder-mode');
+}
 function installReorder(row, taskId) {
-  let timer = null,
-    originX = 0,
-    originY = 0,
-    pressed = false;
-  const ignore = (target) => target.closest("input, .task-actions");
-  function clearTimer() {
-    clearTimeout(timer);
-    timer = null;
-  }
-  function begin(x, y) {
-    if (!pressed || $("#task-list").children.length < 2) return;
-    const rect = row.getBoundingClientRect();
-    const preview = row.cloneNode(true);
-    preview.className = row.className + " drag-preview";
-    preview.removeAttribute("data-id");
-    preview.querySelectorAll("[id]").forEach(element => element.removeAttribute("id"));
-    preview.setAttribute("aria-hidden", "true");
-    preview.inert = true;
-    Object.assign(preview.style, { left: `${rect.left}px`, top: "0", width: `${rect.width}px`, height: `${rect.height}px`, transform: `translate3d(0, ${rect.top}px, 0) scale(1.015)` });
-    document.body.append(preview);
-    dragging = { id: taskId, row, y, preview, grab: y - rect.top, scrollFrame: null, cancel: () => finish(true) };
-    row.classList.add("is-dragging");
-    document.body.classList.add("is-reordering");
-    $(".task-panel").classList.add("reorder-mode");
-    $("#live-status").textContent =
-      "Reordering task. Drag up or down, then release.";
-    navigator.vibrate?.(20);
-    function autoScroll() {
-      if (!dragging) return;
-      dragging.preview.style.transform = `translate3d(0, ${dragging.y - dragging.grab}px, 0) scale(1.015)`;
-      const margin = 90,
-        y = dragging.y;
-      const delta =
-        y < margin
-          ? -Math.ceil((margin - y) / 8)
-          : y > innerHeight - margin
-            ? Math.ceil((y - (innerHeight - margin)) / 8)
-            : 0;
+  const ignore = target => target.closest('input, .task-actions');
+  function press(x, y, input, identifier, delay) {
+    cancelReorder();
+    if (!row.isConnected || row.parentElement !== $('#task-list')) return;
+    const state = {
+      row, id: taskId, input, identifier, originX: x, originY: y, y,
+      active: false, preview: null, frame: null, timer: null,
+      idleTimer: null, hardTimer: null, autoScrollUntil: 0,
+      finish, move,
+    };
+    reorderGesture = state;
+    function armIdleTimer() {
+      clearTimeout(state.idleTimer);
+      state.idleTimer = setTimeout(() => finish(true), 8000);
+    }
+    function place(y) {
+      const list = $('#task-list');
+      if (row.parentElement !== list) { finish(true); return; }
+      const others = Array.from(list.children).filter(item => item !== row);
+      const top = list.getBoundingClientRect().top;
+      const next = others.find(item => y < top + item.offsetTop + item.offsetHeight / 2);
+      if (row.nextElementSibling === (next || null)) return;
+      const before = new Map(others.map(item => [item, item.getBoundingClientRect().top]));
+      for (const item of others) item.getAnimations().forEach(animation => animation.cancel());
+      if (next) list.insertBefore(row, next); else list.append(row);
+      if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        for (const item of others) {
+          const delta = before.get(item) - item.getBoundingClientRect().top;
+          if (Math.abs(delta) > 1 && item.animate) item.animate([
+            { transform: `translateY(${delta}px)` }, { transform: 'translateY(0)' },
+          ], { duration: 230, easing: 'cubic-bezier(.2,.75,.25,1)' });
+        }
+      }
+    }
+    function frame() {
+      if (reorderGesture !== state || !state.active) return;
+      if (row.parentElement !== $('#task-list') || !state.preview.isConnected) { finish(true); return; }
+      state.preview.style.transform = `translate3d(0, ${state.y - state.grab}px, 0) scale(1.015)`;
+      const margin = 90, y = state.y;
+      const delta = y < margin ? -Math.ceil((margin - y) / 8) : y > innerHeight - margin ? Math.ceil((y - (innerHeight - margin)) / 8) : 0;
       if (delta) {
+        // Only our own edge scrolling may keep the drag alive. A normal page
+        // scroll, native takeover or viewport change cancels it.
+        state.autoScrollUntil = performance.now() + 80;
         window.scrollBy(0, delta);
         place(y);
       }
-      dragging.scrollFrame = requestAnimationFrame(autoScroll);
+      if (reorderGesture === state) state.frame = requestAnimationFrame(frame);
     }
-    dragging.scrollFrame = requestAnimationFrame(autoScroll);
-  }
-  function place(y) {
-    const list = $("#task-list");
-    const others = Array.from(list.children).filter(item => item !== row);
-    const next = others.find(item => {
-      return y < list.getBoundingClientRect().top + item.offsetTop + item.offsetHeight / 2;
-    });
-    if (row.nextElementSibling === (next || null)) return;
-    const before = new Map(others.map(item => [item, item.getBoundingClientRect().top]));
-    for (const item of others) item.getAnimations().forEach(animation => animation.cancel());
-    if (next) list.insertBefore(row, next); else list.append(row);
-    if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      for (const item of others) {
-        const delta = before.get(item) - item.getBoundingClientRect().top;
-        if (Math.abs(delta) > 1) item.animate([{ transform: `translateY(${delta}px)` }, { transform: "translateY(0)" }], { duration: 230, easing: "cubic-bezier(.2,.75,.25,1)" });
+    function begin() {
+      if (reorderGesture !== state || !row.isConnected || row.parentElement !== $('#task-list') || $('#task-list').children.length < 2) { finish(true); return; }
+      const rect = row.getBoundingClientRect();
+      const preview = row.cloneNode(true);
+      preview.className = row.className + ' drag-preview';
+      preview.removeAttribute('data-id');
+      preview.querySelectorAll('[id]').forEach(element => element.removeAttribute('id'));
+      preview.setAttribute('aria-hidden', 'true');
+      preview.inert = true;
+      Object.assign(preview.style, { left: `${rect.left}px`, top: '0', width: `${rect.width}px`, height: `${rect.height}px`, transform: `translate3d(0, ${rect.top}px, 0) scale(1.015)` });
+      state.preview = preview;
+      state.grab = state.originY - rect.top;
+      state.active = true;
+      document.body.append(preview);
+      row.classList.add('is-dragging');
+      document.body.classList.add('is-reordering');
+      $('.task-panel').classList.add('reorder-mode');
+      $('#live-status').textContent = 'Reordering task. Drag up or down, then release.';
+      armIdleTimer();
+      state.hardTimer = setTimeout(() => finish(true), 30000);
+      try { navigator.vibrate?.(20); } catch {}
+      if (input === 'pointer') {
+        try { row.setPointerCapture(identifier); } catch {}
       }
+      state.frame = requestAnimationFrame(frame);
     }
-  }
-  function move(x, y, event) {
-    if (!pressed) return;
-    if (!dragging && Math.hypot(x - originX, y - originY) > 9) {
-      pressed = false;
-      clearTimer();
-      return;
-    }
-    if (dragging?.row !== row) return;
-    if (event.cancelable) event.preventDefault();
-    dragging.y = y;
-    place(y);
-  }
-  function finish(cancelled = false) {
-    clearTimer();
-    pressed = false;
-    if (dragging?.row !== row) return;
-    const state = dragging;
-    cancelAnimationFrame(state.scrollFrame);
-    dragging = null;
-    document.body.classList.remove("is-reordering");
-    $(".task-panel").classList.remove("reorder-mode");
-    const order = Array.from($("#task-list").children).map(item => item.dataset.id);
-    if (cancelled) { state.preview.remove(); render(); return; }
-    const start = state.preview.getBoundingClientRect();
-    applyVisibleOrder(order);
-    const target = Array.from($("#task-list").children).find(item => item.dataset.id === taskId);
-    if (!target || matchMedia("(prefers-reduced-motion: reduce)").matches) { state.preview.remove(); return; }
-    const end = target.getBoundingClientRect();
-    target.classList.add("drop-settling");
-    const animation = state.preview.animate([
-      { transform: `translate3d(0, ${start.top}px, 0) scale(1.015)` },
-      { transform: `translate3d(0, ${end.top}px, 0) scale(1)` }
-    ], { duration: 190, easing: "cubic-bezier(.2,.75,.25,1)", fill: "forwards" });
-    const cleanup = () => { state.preview.remove(); target.classList.remove("drop-settling"); };
-    animation.finished.then(cleanup, cleanup);
-  }
-
-  row.addEventListener(
-    "touchstart",
-    (event) => {
-      if (ignore(event.target) || event.touches.length !== 1) return;
-      const t = event.touches[0];
-      originX = t.clientX;
-      originY = t.clientY;
-      pressed = true;
-      clearTimer();
-      timer = setTimeout(() => begin(originX, originY), 420);
-    },
-    { passive: true },
-  );
-  row.addEventListener(
-    "touchmove",
-    (event) => {
-      if (event.touches.length !== 1) {
-        finish(true);
+    function move(x, y, event) {
+      if (reorderGesture !== state) return;
+      if (!state.active) {
+        if (Math.hypot(x - state.originX, y - state.originY) > 9) finish(true);
         return;
       }
-      const t = event.touches[0];
-      move(t.clientX, t.clientY, event);
-    },
-    { passive: false },
-  );
-  row.addEventListener("touchend", () => finish());
-  row.addEventListener("touchcancel", () => finish(true));
-  row.addEventListener("contextmenu", (event) => {
-    if (!ignore(event.target)) event.preventDefault();
-  });
-  row.addEventListener("pointerdown", (event) => {
-    if (
-      event.pointerType === "touch" ||
-      event.button !== 0 ||
-      ignore(event.target)
-    )
-      return;
-    originX = event.clientX;
-    originY = event.clientY;
-    pressed = true;
-    clearTimer();
-    timer = setTimeout(
-      () => {
-        begin(originX, originY);
-        if (dragging?.row === row) row.setPointerCapture(event.pointerId);
-      },
-      event.target.closest(".drag-handle") ? 120 : 420,
-    );
-  });
-  row.addEventListener("pointermove", (event) => {
-    if (event.pointerType !== "touch")
-      move(event.clientX, event.clientY, event);
-  });
-  row.addEventListener("pointerup", (event) => {
-    if (event.pointerType !== "touch") finish();
-  });
-  row.addEventListener("pointercancel", (event) => {
-    if (event.pointerType !== "touch") finish(true);
-  });
-  row.addEventListener("pointerleave", (event) => {
-    if (event.pointerType !== "touch" && !dragging) {
-      pressed = false;
-      clearTimer();
+      if (input === 'touch' && !event.cancelable) { finish(true); return; }
+      if (event.cancelable) event.preventDefault();
+      state.y = y;
+      armIdleTimer();
+      place(y);
     }
+    function finish(cancelled = false, redraw = true) {
+      if (reorderGesture !== state) return;
+      // Clear ownership before rendering or releasing capture: both can
+      // synchronously send events back through the lifecycle guards.
+      reorderGesture = null;
+      clearTimeout(state.timer);
+      clearTimeout(state.idleTimer);
+      clearTimeout(state.hardTimer);
+      cancelAnimationFrame(state.frame);
+      if (input === 'pointer') {
+        try { if (row.hasPointerCapture(identifier)) row.releasePointerCapture(identifier); } catch {}
+      }
+      document.body.classList.remove('is-reordering');
+      $('.task-panel').classList.remove('reorder-mode');
+      row.classList.remove('is-dragging');
+      const preview = state.preview;
+      const start = preview?.getBoundingClientRect();
+      preview?.remove();
+      if (!state.active) return;
+      if (cancelled || row.parentElement !== $('#task-list')) {
+        if (redraw) render();
+        return;
+      }
+      const order = Array.from($('#task-list').children).map(item => item.dataset.id);
+      applyVisibleOrder(order);
+      const target = Array.from($('#task-list').children).find(item => item.dataset.id === taskId);
+      if (!target || !preview || matchMedia('(prefers-reduced-motion: reduce)').matches || !preview.animate) return;
+      const end = target.getBoundingClientRect();
+      target.classList.add('drop-settling');
+      document.body.append(preview);
+      let animation = null, fallback = null;
+      const cleanup = () => {
+        clearTimeout(fallback);
+        animation?.cancel();
+        preview.remove();
+        target.classList.remove('drop-settling');
+        if (settlingCleanup === cleanup) settlingCleanup = null;
+      };
+      settlingCleanup = cleanup;
+      // Animation promises may pause with a hidden tab. Removal must not
+      // depend on a finish callback arriving.
+      fallback = setTimeout(cleanup, 400);
+      try {
+        animation = preview.animate([
+          { transform: `translate3d(0, ${start.top}px, 0) scale(1.015)` },
+          { transform: `translate3d(0, ${end.top}px, 0) scale(1)` },
+        ], { duration: 190, easing: 'cubic-bezier(.2,.75,.25,1)', fill: 'forwards' });
+        animation.finished.then(cleanup, cleanup);
+      } catch { cleanup(); }
+    }
+    state.timer = setTimeout(begin, delay);
+  }
+  row.addEventListener('touchstart', event => {
+    if (ignore(event.target) || event.touches.length !== 1) return;
+    const t = event.touches[0];
+    press(t.clientX, t.clientY, 'touch', t.identifier, 420);
+  }, { passive: true });
+  row.addEventListener('pointerdown', event => {
+    if (event.pointerType === 'touch' || event.button !== 0 || ignore(event.target)) return;
+    press(event.clientX, event.clientY, 'pointer', event.pointerId, event.target.closest('.drag-handle') ? 120 : 420);
   });
+  row.addEventListener('contextmenu', event => { if (!ignore(event.target)) event.preventDefault(); });
 }
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && dragging) dragging.cancel();
+// Listen above the row: rendering, release outside the row, lost capture and
+// Android's native scroll cancellation must all reach the same owner.
+document.addEventListener('pointerdown', () => cancelReorder(), true);
+document.addEventListener('touchstart', event => {
+  if (event.touches.length !== 1) cancelReorder();
+}, { passive: true, capture: true });
+document.addEventListener('touchmove', event => {
+  const state = reorderGesture;
+  if (!state || state.input !== 'touch') return;
+  const touch = Array.from(event.touches).find(t => t.identifier === state.identifier);
+  if (!touch || event.touches.length !== 1) { cancelReorder(); return; }
+  state.move(touch.clientX, touch.clientY, event);
+}, { passive: false, capture: true });
+document.addEventListener('touchend', event => {
+  const state = reorderGesture;
+  if (state?.input === 'touch' && (!event.touches.length || Array.from(event.changedTouches).some(t => t.identifier === state.identifier))) state.finish();
+}, true);
+document.addEventListener('touchcancel', () => cancelReorder(), true);
+document.addEventListener('pointermove', event => {
+  const state = reorderGesture;
+  if (state?.input !== 'pointer' || event.pointerId !== state.identifier) return;
+  if (!event.buttons) { cancelReorder(); return; }
+  state.move(event.clientX, event.clientY, event);
+}, true);
+document.addEventListener('pointerup', event => {
+  const state = reorderGesture;
+  if (state?.input === 'pointer' && event.pointerId === state.identifier) state.finish();
+}, true);
+document.addEventListener('pointercancel', () => cancelReorder(), true);
+document.addEventListener('lostpointercapture', event => {
+  if (reorderGesture?.input === 'pointer' && reorderGesture.identifier === event.pointerId) cancelReorder();
+}, true);
+document.addEventListener('focusin', event => {
+  const state = reorderGesture;
+  if (settlingCleanup || (state && (!state.row.contains(event.target) || event.target.closest('input,.task-actions')))) cancelReorder();
 });
+document.addEventListener('keydown', event => { if (event.key === 'Escape') cancelReorder(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden) cancelReorder(); });
+window.addEventListener('blur', () => cancelReorder());
+window.addEventListener('pagehide', () => cancelReorder());
+window.addEventListener('resize', () => cancelReorder());
+window.visualViewport?.addEventListener('resize', () => cancelReorder());
+window.addEventListener('scroll', () => {
+  if (settlingCleanup || (reorderGesture && performance.now() > reorderGesture.autoScrollUntil)) cancelReorder();
+}, { passive: true, capture: true });
 updateAdd();
 render();
 // Never register a service worker from file://; opening index.html still works.
