@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101816"><meta name="description" content="A little structure for a clearer day. ListX is your private, offline-first task list.">
+<link rel="icon" href="imgs/icon-192.png"><link rel="manifest" href="manifest.json"><link rel="stylesheet" href="css/style.css">
+<title>ListX · Your space to focus</title>
+<script>try { document.documentElement.dataset.theme = localStorage.getItem((location.pathname.toLowerCase().startsWith('/listx/') ? 'listx:/ListX/:' : '') + 'theme') === 'light' ? 'light' : 'dark'; } catch {}</script>
+</head>
+<body>
+<svg class="svg-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+<symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/></symbol>
+<symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></symbol>
+<symbol id="i-edit" viewBox="0 0 24 24"><path d="m15 5 4 4M4 20l5-1L20 8a2.8 2.8 0 0 0-4-4L5 15l-1 5Z"/></symbol>
+<symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 6h16M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7m4-7v7"/></symbol>
+<symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></symbol>
+<symbol id="i-leaf" viewBox="0 0 24 24"><path d="M20 3C8 2 2 8 6 15s16 4 14-12ZM5 21 16 9"/></symbol>
+</defs></svg>
+<div class="app-shell">
+<aside class="sidebar">
+<a class="brand" href="./" aria-label="ListX home"><span class="brand-mark"><svg><use href="#i-check"/></svg></span>List<span class="brand-x">X</span></a>
+<div class="workspace-label">PERSONAL WORKSPACE</div>
+<button class="nav-item active" type="button" id="all-nav"><svg><use href="#i-grid"/></svg><span>My tasks</span><span class="nav-count" id="nav-count">0</span></button>
+<div class="sidebar-note"><svg><use href="#i-leaf"/></svg><h2>Less noise.<br>More headspace.</h2><p>One small step is still<br>a step forward.</p></div>
+<div class="sidebar-bottom"><span class="status-dot"></span><span id="connection-status">Works offline</span><span class="version">ListX</span></div>
+</aside>
+<div class="workspace">
+<header class="topbar"><span class="breadcrumb">Workspace <span>/</span> <strong>My tasks</strong></span><div class="top-actions"><span class="private-label"><span class="status-dot"></span> Just for you</span><button type="button" class="icon-button" id="theme-toggle" aria-label="Switch to light theme" title="Switch theme"><svg><use href="#i-sun"/></svg></button></div></header>
+<main id="main-content">
+<section class="intro"><div><p class="eyebrow" id="date-label">YOUR PERSONAL SPACE</p><h1>A little focus.<br class="mobile-break"> A lighter day<span>.</span></h1><p class="intro-copy">Make room for what matters, one task at a time.</p></div><div class="intro-decoration" aria-hidden="true"><svg><use href="#i-leaf"/></svg></div></section>
+<section class="overview" aria-label="Task overview"><div class="stat"><span class="stat-label">Total tasks</span><strong id="stat-total">0</strong><span class="stat-hint">Everything in one place</span></div><div class="stat"><span class="stat-label"><span class="tiny-dot"></span> In progress</span><strong id="stat-active">0</strong><span class="stat-hint">Ready for your next step</span></div><div class="stat progress-stat"><div><span class="stat-label">Completed</span><strong id="stat-completed">0</strong><span class="stat-hint" id="progress-caption">A fresh start</span></div><div class="progress-ring" id="progress-ring" role="progressbar" aria-label="Tasks completed" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="progress-value">0%</span></div></div></section>
+<section class="task-panel" aria-label="Your tasks">
+<div class="panel-title"><div><h2>My tasks <span id="heading-count">0</span></h2><p>A clear list. A clear mind.</p></div><button class="text-button danger" id="clear-all" type="button" disabled><svg><use href="#i-trash"/></svg>Clear all</button></div>
+<form id="add-form" autocomplete="off"><label class="sr-only" for="task-input">New task</label><span class="input-plus" aria-hidden="true">+</span><input id="task-input" name="task" dir="auto" placeholder="What would you like to get done?" maxlength="2000"><button class="primary-button" type="submit" id="add-button" disabled><span>Add task</span><svg><use href="#i-arrow"/></svg></button></form>
+<div class="list-toolbar"><div class="filters" role="group" aria-label="Filter tasks"><button type="button" class="filter selected" data-filter="all" aria-pressed="true">All <span id="filter-all">0</span></button><button type="button" class="filter" data-filter="active" aria-pressed="false">Active <span id="filter-active">0</span></button><button type="button" class="filter" data-filter="completed" aria-pressed="false">Done <span id="filter-completed">0</span></button></div><div class="search-field"><svg><use href="#i-search"/></svg><label class="sr-only" for="search-input">Search tasks</label><input id="search-input" type="search" placeholder="Search tasks" autocomplete="off"></div></div>
+<ul id="task-list" class="task-list" aria-label="Tasks"></ul>
+<div id="empty-state" class="empty-state"><span class="empty-icon"><svg><use href="#i-check"/></svg></span><h3>Your next chapter starts here</h3><p>Add your first task. Keep it small, make it count.</p></div>
+<footer class="panel-footer"><span id="remaining-label">0 tasks left</span><button type="button" class="text-button" id="clear-completed" hidden>Clear completed</button></footer>
+</section>
+<footer class="workspace-footer"><span>Small steps. Real progress.</span><span>Stored on this device <span class="status-dot"></span></span></footer>
+<p class="storage-warning" id="storage-warning" role="alert" hidden>Storage is unavailable. Changes will only last until you close this page.</p>
+</main></div></div>
+<dialog id="edit-dialog" aria-labelledby="edit-title"><form id="edit-form"><p class="eyebrow">A LITTLE FINE-TUNING</p><h2 id="edit-title">Edit task</h2><label for="edit-input">Task name</label><input id="edit-input" dir="auto" maxlength="2000" required><div class="dialog-buttons"><button type="button" class="secondary-button" id="edit-cancel">Cancel</button><button type="submit" class="primary-button" id="edit-save">Save changes</button></div></form></dialog>
+<dialog id="clear-dialog" aria-labelledby="clear-title"><p class="eyebrow">START FRESH</p><h2 id="clear-title">Clear all tasks?</h2><p id="clear-description">You can undo this right after clearing.</p><div class="dialog-buttons"><button type="button" class="secondary-button" id="clear-cancel">Keep tasks</button><button type="button" class="danger-button" id="clear-confirm">Clear all</button></div></dialog>
+<div class="toast" id="toast" role="status" hidden><span id="toast-message"></span><button type="button" id="undo-button" hidden>Undo</button><button type="button" id="dismiss-toast" aria-label="Dismiss notification">×</button></div>
+<div class="sr-only" role="status" id="live-status" aria-live="polite"></div>
+<script src="js/app.js" defer></script>
+</body></html>
