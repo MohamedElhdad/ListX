@@ -1,6 +1,6 @@
-const storagePrefix = location.pathname.toLowerCase().startsWith("/listx/") ? "listx:/ListX/:" : "";
 "use strict";
-// No framework or build step. Keep the original `tasks` and `theme` storage keys.
+// Project sites share an origin. Keep this folder separate from other apps.
+const storagePrefix = location.pathname.toLowerCase().startsWith("/listx/") ? "listx:/ListX/:" : "";
 const $ = (selector) => document.querySelector(selector);
 const storage = {
   get(key, fallback = null, session = false) {
@@ -83,6 +83,9 @@ const PALETTES = {
   dark: "#101816",
   "dark-blue": "#101827",
   graphite: "#1b191f",
+  obsidian: "#08090b",
+  petrol: "#0c1b20",
+  espresso: "#1b1512",
   light: "#f7f5ef",
   "light-blue": "#f0f5fc",
   "light-sage": "#eff5f0",
@@ -90,9 +93,9 @@ const PALETTES = {
 let appearance = { font: "inter", size: "comfortable" };
 try {
   const saved = JSON.parse(storage.get("listx-appearance", "{}"));
-  if (["inter", "system", "editorial"].includes(saved.font))
+  if (["inter", "system", "editorial", "mono"].includes(saved.font))
     appearance.font = saved.font;
-  if (["compact", "comfortable", "large"].includes(saved.size))
+  if (["small", "compact", "comfortable", "large"].includes(saved.size))
     appearance.size = saved.size;
 } catch {}
 function setTheme(theme, save = true) {
@@ -259,7 +262,7 @@ function taskRow(task) {
       tasks = tasks.filter((t) => t.id !== task.id);
       commit("Task deleted");
       showToast("Task deleted", true);
-      $("#task-input").focus();
+      $("#undo-button").focus({ preventScroll: true });
     }),
   );
   li.append(grip, check, text, actions);
@@ -409,14 +412,14 @@ $("#clear-confirm").addEventListener("click", () => {
   commit("All tasks cleared");
   $("#clear-dialog").close();
   showToast("All tasks cleared", true);
-  $("#task-input").focus();
+  $("#undo-button").focus({ preventScroll: true });
 });
 $("#clear-completed").addEventListener("click", () => {
   undoSnapshot = tasks.map((t) => ({ ...t }));
   tasks = tasks.filter((t) => !t.done);
   commit("Completed tasks cleared");
   showToast("Completed tasks cleared", true);
-  $("#task-input").focus();
+  $("#undo-button").focus({ preventScroll: true });
 });
 for (const dialog of document.querySelectorAll("dialog"))
   dialog.addEventListener("click", (event) => {
@@ -453,28 +456,28 @@ $("#undo-button").addEventListener("click", () => {
   undoSnapshot = null;
   commit("Tasks restored");
   $("#toast").hidden = true;
-  $("#task-input").focus();
+  ($(".drag-handle") || $("#settings-button")).focus({ preventScroll: true });
 });
 $("#dismiss-toast").addEventListener("click", () => {
   $("#toast").hidden = true;
   undoSnapshot = null;
 });
 window.addEventListener("storage", (event) => {
-  if(storagePrefix && !event.key?.startsWith(storagePrefix)) return;
-  const changedKey = storagePrefix ? event.key.slice(storagePrefix.length) : event.key;
-  if (changedKey === "tasks") {
+  if (storagePrefix && !event.key?.startsWith(storagePrefix)) return;
+  const key = storagePrefix ? event.key.slice(storagePrefix.length) : event.key;
+  if (key === "tasks") {
     tasks = readTasks();
     undoSnapshot = null;
     $("#toast").hidden = true;
     render();
   }
-  if (changedKey === "theme") setTheme(event.newValue || "dark", false);
-  if (changedKey === "listx-appearance") {
+  if (key === "theme") setTheme(event.newValue || "dark", false);
+  if (key === "listx-appearance") {
     try {
       const a = JSON.parse(event.newValue || "{}");
-      if (["inter", "system", "editorial"].includes(a.font))
+      if (["inter", "system", "editorial", "mono"].includes(a.font))
         appearance.font = a.font;
-      if (["compact", "comfortable", "large"].includes(a.size))
+      if (["small", "compact", "comfortable", "large"].includes(a.size))
         appearance.size = a.size;
       applyAppearance(false);
     } catch {}
@@ -652,3 +655,13 @@ if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
     }),
   );
 }
+
+// Keep feedback above an open mobile keyboard, including standalone display.
+function positionFeedback() {
+ const v = window.visualViewport;
+ const inset = v ? Math.max(0, window.innerHeight - v.height - v.offsetTop) : 0;
+ document.documentElement.style.setProperty('--keyboard-inset', `${inset}px`);
+}
+window.visualViewport?.addEventListener('resize', positionFeedback);
+window.visualViewport?.addEventListener('scroll', positionFeedback);
+positionFeedback();

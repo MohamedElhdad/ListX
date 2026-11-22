@@ -1943,3 +1943,28 @@ body {
   z-index: 2;
   background: var(--surface);
 }
+
+/* Revision 3: distinct counts, themed feedback, mobile-safe controls. */
+[data-theme="obsidian"] { color-scheme:dark; --bg:#08090b; --sidebar:#101114; --surface:#14161a; --raised:#202329; --hover:#292d34; --border:#383e47; --text:#f3f5f7; --muted:#abb3bf; --accent:#d2d8e3; --accent-ink:#1c2430; --ring:#d2d8e3; }
+[data-theme="petrol"] { color-scheme:dark; --bg:#0c1b20; --sidebar:#0f242a; --surface:#122d34; --raised:#173940; --hover:#1b444b; --border:#2c5259; --text:#eaf7f6; --muted:#9dbfc2; --accent:#7dd9d1; --accent-ink:#103733; --ring:#7dd9d1; }
+[data-theme="espresso"] { color-scheme:dark; --bg:#1b1512; --sidebar:#211a16; --surface:#29201b; --raised:#382a22; --hover:#443329; --border:#574236; --text:#fcf1e9; --muted:#c0ad9e; --accent:#eac293; --accent-ink:#3a2819; --ring:#eac293; }
+[data-font="mono"] { --task-font:ui-monospace, 'SFMono-Regular', Consolas, 'Liberation Mono', Tajawal, monospace; }
+[data-size="small"] { --task-size:13px; }
+.font-options button[data-font-option="mono"] > span { font-family:ui-monospace,monospace; }
+.size-options button[data-size-option="small"] > span { font-size:13px; }
+.font-options,.size-options { grid-template-columns:repeat(4,minmax(0,1fr)); }
+.filter span { display:inline-flex;align-items:center;justify-content:center;min-width:24px;min-height:24px;padding:2px 6px;background:var(--text);color:var(--bg);border:1px solid var(--text);font-weight:750;font-size:11px;border-radius:6px;font-variant-numeric:tabular-nums; }
+.filter.selected span { background:var(--accent-ink);color:var(--accent);border-color:var(--accent-ink); }
+.toast { background:var(--surface);color:var(--text);border:1px solid var(--border);border-left:3px solid var(--accent);bottom:calc(18px + env(safe-area-inset-bottom,0px) + var(--keyboard-inset,0px));border-radius:14px;gap:12px;padding:10px 12px;font-size:13px;z-index:20; }
+.toast #undo-button { background:var(--accent);color:var(--accent-ink);border-radius:9px;padding:8px 14px;min-height:44px;font-size:13px;font-weight:700; }
+.toast #dismiss-toast { min-width:40px;min-height:44px;color:var(--muted); }
+#settings-button svg { width:23px;height:23px;stroke-width:1.7; }
+@media(max-width:700px) {
+ .topbar { padding-top:calc(15px + env(safe-area-inset-top,0px)); }
+ main { padding-bottom:calc(100px + env(safe-area-inset-bottom,0px)); }
+ .toast { width:calc(100% - 28px);max-width:430px;gap:8px; }
+ #toast-message { flex:1;min-width:0;line-height:1.5; }
+ .task-actions button { min-width:40px;min-height:44px; }
+ .settings-dialog { max-height:calc(100dvh - 28px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)); }
+}
+@media(prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important;transition:none!important;animation:none!important; } }

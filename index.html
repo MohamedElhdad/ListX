@@ -2,7 +2,10 @@
 <html lang="en" data-theme="dark">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="apple-touch-icon" href="imgs/icon-192.png" />
     <meta name="theme-color" content="#101816" />
     <meta
       name="description"
@@ -14,21 +17,23 @@
     <title>ListX · Your space to focus</title>
     <script>
       try {
-        const t = localStorage.getItem((location.pathname.toLowerCase().startsWith("/listx/") ? "listx:/ListX/:" : "") + "theme");
+        const prefix = location.pathname.toLowerCase().startsWith("/listx/") ? "listx:/ListX/:" : "";
+        const t = localStorage.getItem(prefix + "theme");
         document.documentElement.dataset.theme = [
           "dark",
           "dark-blue",
           "graphite",
+          "obsidian", "petrol", "espresso",
           "light",
           "light-blue",
           "light-sage",
         ].includes(t)
           ? t
           : "dark";
-        const a = JSON.parse(localStorage.getItem((location.pathname.toLowerCase().startsWith("/listx/") ? "listx:/ListX/:" : "") + "listx-appearance") || "{}");
-        if (["inter", "system", "editorial"].includes(a.font))
+        const a = JSON.parse(localStorage.getItem(prefix + "listx-appearance") || "{}");
+        if (["inter", "system", "editorial", "mono"].includes(a.font))
           document.documentElement.dataset.font = a.font;
-        if (["compact", "comfortable", "large"].includes(a.size))
+        if (["small", "compact", "comfortable", "large"].includes(a.size))
           document.documentElement.dataset.size = a.size;
       } catch {}
     </script>
@@ -121,7 +126,7 @@
               aria-label="Open appearance settings"
               title="Appearance settings"
             >
-              <svg><use href="#i-settings" /></svg>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.30,12.00 L21.93,13.18 L21.08,16.19 L19.08,16.34 L17.87,17.87 L18.19,19.85 L15.46,21.38 L13.94,20.07 L12.00,20.30 L10.82,21.93 L7.81,21.08 L7.66,19.08 L6.13,17.87 L4.15,18.19 L2.62,15.46 L3.93,13.94 L3.70,12.00 L2.07,10.82 L2.92,7.81 L4.92,7.66 L6.13,6.13 L5.81,4.15 L8.54,2.62 L10.06,3.93 L12.00,3.70 L13.18,2.07 L16.19,2.92 L16.34,4.92 L17.87,6.13 L19.85,5.81 L21.38,8.54 L20.07,10.06 Z"/><circle cx="12" cy="12" r="3.2"/></svg>
             </button>
           </div>
         </header>
@@ -302,7 +307,7 @@
       </div>
       <section class="settings-section">
         <h3>Color palette</h3>
-        <p>Six considered combinations. One clear focus.</p>
+        <p>Six dark palettes. Three light alternatives.</p>
         <div class="theme-grid" role="group" aria-label="Color palette">
           <button
             type="button"
@@ -355,7 +360,7 @@
             ><span>Graphite<small>Dark violet</small></span
             ><span class="choice-check">✓</span>
           </button>
-          <button
+<button type="button" class="theme-choice" data-palette="obsidian" aria-pressed="false"><span class="theme-swatch" style="--sample-bg:#08090b;--sample-surface:#202329;--sample-accent:#d2d8e3"><i></i><b></b></span><span>Obsidian<small>True black</small></span><span class="choice-check">✓</span></button><button type="button" class="theme-choice" data-palette="petrol" aria-pressed="false"><span class="theme-swatch" style="--sample-bg:#0c1b20;--sample-surface:#173940;--sample-accent:#7dd9d1"><i></i><b></b></span><span>Petrol<small>Deep teal</small></span><span class="choice-check">✓</span></button><button type="button" class="theme-choice" data-palette="espresso" aria-pressed="false"><span class="theme-swatch" style="--sample-bg:#1b1512;--sample-surface:#382a22;--sample-accent:#eac293"><i></i><b></b></span><span>Espresso<small>Warm charcoal</small></span><span class="choice-check">✓</span></button>          <button
             type="button"
             class="theme-choice"
             data-palette="light"
@@ -423,14 +428,14 @@
           >
             <span>Aa</span>Editorial<small>Serif</small>
           </button>
-        </div>
+        <button type="button" data-font-option="mono" aria-pressed="false"><span>Aa</span>Mono<small>Monospace</small></button></div>
         <p class="settings-detail">
           Arabic text keeps its self-hosted Tajawal font.
         </p>
       </section>
       <section class="settings-section">
         <h3>Task text size</h3>
-        <div class="size-options" role="group" aria-label="Task text size">
+        <div class="size-options" role="group" aria-label="Task text size"><button type="button" data-size-option="small" aria-pressed="false"><span>Aa</span>Small<small>13px</small></button>
           <button type="button" data-size-option="compact" aria-pressed="false">
             <span>Aa</span>Compact<small>15px</small></button
           ><button
