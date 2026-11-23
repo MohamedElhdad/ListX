@@ -1,6 +1,6 @@
 "use strict";
 const CACHE_PREFIX = `listx:${self.registration.scope}:`;
-const CACHE_NAME = CACHE_PREFIX + "v6-desktop-undo";
+const CACHE_NAME = CACHE_PREFIX + "v7-appearance-icon";
 const ASSETS = [
   "./",
   "./index.html",
@@ -9,6 +9,9 @@ const ASSETS = [
   "./js/app.js",
   "./imgs/icon-192.png",
   "./imgs/icon-512.png",
+  "./imgs/icon-maskable-512.png",
+  "./imgs/apple-touch-icon.png",
+  "./imgs/icon.svg",
   "./fonts/tajawal-400-arabic.woff2",
   "./fonts/tajawal-500-arabic.woff2",
   "./fonts/tajawal-700-arabic.woff2",

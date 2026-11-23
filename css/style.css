@@ -1228,7 +1228,7 @@ dialog > p:not(.eyebrow) {
 }
 /* Revision 2: coordinated palettes and device-local appearance settings. */
 :root {
-  --task-size: 17px;
+  --task-size: 14px;
   --ui-font: Inter, Tajawal, system-ui, sans-serif;
   --task-font: Inter, Tajawal, system-ui, sans-serif;
   --danger-fill: #57302c;
@@ -1332,7 +1332,7 @@ dialog > p:not(.eyebrow) {
   --task-size: 15px;
 }
 [data-size="large"] {
-  --task-size: 20px;
+  --task-size: 17px;
 }
 body {
   font-family: var(--ui-font);
@@ -1949,7 +1949,7 @@ body {
 [data-theme="petrol"] { color-scheme:dark; --bg:#0c1b20; --sidebar:#0f242a; --surface:#122d34; --raised:#173940; --hover:#1b444b; --border:#2c5259; --text:#eaf7f6; --muted:#9dbfc2; --accent:#7dd9d1; --accent-ink:#103733; --ring:#7dd9d1; }
 [data-theme="espresso"] { color-scheme:dark; --bg:#1b1512; --sidebar:#211a16; --surface:#29201b; --raised:#382a22; --hover:#443329; --border:#574236; --text:#fcf1e9; --muted:#c0ad9e; --accent:#eac293; --accent-ink:#3a2819; --ring:#eac293; }
 [data-font="mono"] { --task-font:ui-monospace, 'SFMono-Regular', Consolas, 'Liberation Mono', Tajawal, monospace; }
-[data-size="small"] { --task-size:13px; }
+[data-size="small"] { --task-size:14px; }
 .font-options button[data-font-option="mono"] > span { font-family:ui-monospace,monospace; }
 .size-options button[data-size-option="small"] > span { font-size:13px; }
 .font-options,.size-options { grid-template-columns:repeat(4,minmax(0,1fr)); }
@@ -2018,5 +2018,8 @@ body {
 /* Obsidian: requested blue only on the brand and task checkboxes. */
 [data-theme="obsidian"] .brand-x { color:#7d97bc; }
 [data-theme="obsidian"] .brand-mark { background:#7d97bc; }
-[data-theme="obsidian"] .task-checkbox { border-color:#7d97bc; }
-[data-theme="obsidian"] .task-checkbox:checked { background:#7d97bc; }
+[data-theme="obsidian"] .task-checkbox { border-color:#aab9cd; }
+[data-theme="obsidian"] .task-checkbox:checked { background:#7d97bc; border-color:#7d97bc; }
+
+/* Four task sizes; existing saved size slots remain compatible. */
+[data-size="comfortable"] { --task-size:16px; }

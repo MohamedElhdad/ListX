@@ -1,17 +1,17 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="obsidian" data-size="small">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link rel="apple-touch-icon" href="imgs/icon-192.png" />
-    <meta name="theme-color" content="#101816" />
+    <link rel="apple-touch-icon" href="imgs/apple-touch-icon.png" />
+    <meta name="theme-color" content="#0a0b0d" />
     <meta
       name="description"
       content="A little structure for a clearer day. ListX is your private, offline-first task list."
     />
-    <link rel="icon" href="imgs/icon-192.png" />
+    <link rel="icon" type="image/svg+xml" href="imgs/icon.svg" />
     <link rel="manifest" href="manifest.json" />
     <link rel="stylesheet" href="css/style.css" />
     <title>ListX · Your space to focus</title>
@@ -29,12 +29,12 @@
           "light-sage",
         ].includes(t)
           ? t
-          : "dark";
+          : "obsidian";
         const a = JSON.parse(localStorage.getItem(prefix + "listx-appearance") || "{}");
         if (["inter", "system", "editorial", "mono"].includes(a.font))
           document.documentElement.dataset.font = a.font;
         if (["small", "compact", "comfortable", "large"].includes(a.size))
-          document.documentElement.dataset.size = a.size;
+          document.documentElement.dataset.size = a.sizeVersion === 2 ? a.size : ({small:"small",compact:"compact",comfortable:"large",large:"large"}[a.size]);
       } catch {}
     </script>
   </head>
@@ -411,18 +411,11 @@
       </section>
       <section class="settings-section">
         <h3>Task text size</h3>
-        <div class="size-options" role="group" aria-label="Task text size"><button type="button" data-size-option="small" aria-pressed="false"><span>Aa</span>Small<small>13px</small></button>
-          <button type="button" data-size-option="compact" aria-pressed="false">
-            <span>Aa</span>Compact<small>15px</small></button
-          ><button
-            type="button"
-            data-size-option="comfortable"
-            aria-pressed="true"
-          >
-            <span>Aa</span>Comfort<small>17px</small></button
-          ><button type="button" data-size-option="large" aria-pressed="false">
-            <span>Aa</span>Large<small>20px</small>
-          </button>
+        <div class="size-options" role="group" aria-label="Task text size">
+          <button type="button" data-size-option="small" aria-pressed="true"><span style="font-size:14px">Aa</span>14px<small>Default</small></button>
+          <button type="button" data-size-option="compact" aria-pressed="false"><span style="font-size:15px">Aa</span>15px</button>
+          <button type="button" data-size-option="comfortable" aria-pressed="false"><span style="font-size:16px">Aa</span>16px</button>
+          <button type="button" data-size-option="large" aria-pressed="false"><span style="font-size:17px">Aa</span>17px</button>
         </div>
       </section>
       <div class="settings-preview">

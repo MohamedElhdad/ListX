@@ -91,16 +91,21 @@ const PALETTES = {
   "light-blue": "#f0f4fa",
   "light-sage": "#faf1f5",
 };
-let appearance = { font: "inter", size: "comfortable" };
+let appearance = { font: "inter", size: "small", sizeVersion: 2 };
 try {
   const saved = JSON.parse(storage.get("listx-appearance", "{}"));
   if (["inter", "system", "editorial", "mono"].includes(saved.font))
     appearance.font = saved.font;
   if (["small", "compact", "comfortable", "large"].includes(saved.size))
-    appearance.size = saved.size;
+    appearance.size = saved.sizeVersion === 2 ? saved.size : migrateLegacySize(saved.size);
 } catch {}
+// V1 size names represented 13/15/17/20px. Keep allowed numeric choices,
+// and clamp removed extremes to the new 14..17px range.
+function migrateLegacySize(size) {
+  return { small: "small", compact: "compact", comfortable: "large", large: "large" }[size] || "small";
+}
 function setTheme(theme, save = true) {
-  if (!Object.hasOwn(PALETTES, theme)) theme = "dark";
+  if (!Object.hasOwn(PALETTES, theme)) theme = "obsidian";
   document.documentElement.dataset.theme = theme;
   if (save) storage.set("theme", theme);
   $('meta[name="theme-color"]').content = PALETTES[theme];
@@ -131,7 +136,7 @@ function applyAppearance(save = true) {
       ),
     );
 }
-setTheme(storage.get("theme") || "dark", false);
+setTheme(storage.get("theme") || "obsidian", false);
 applyAppearance(false);
 $("#settings-button").addEventListener("click", () => {
   $("#settings-dialog").showModal();
@@ -158,9 +163,9 @@ document.querySelectorAll("[data-size-option]").forEach((button) =>
   }),
 );
 $("#reset-appearance").addEventListener("click", () => {
-  appearance = { font: "inter", size: "comfortable" };
+  appearance = { font: "inter", size: "small", sizeVersion: 2 };
   applyAppearance();
-  setTheme("dark");
+  setTheme("obsidian");
 });
 $("#date-label").textContent = new Intl.DateTimeFormat("en", {
   weekday: "long",
@@ -475,14 +480,14 @@ window.addEventListener("storage", (event) => {
     $("#toast").hidden = true;
     render();
   }
-  if (key === "theme") setTheme(event.newValue || "dark", false);
+  if (key === "theme") setTheme(event.newValue || "obsidian", false);
   if (key === "listx-appearance") {
     try {
       const a = JSON.parse(event.newValue || "{}");
       if (["inter", "system", "editorial", "mono"].includes(a.font))
         appearance.font = a.font;
       if (["small", "compact", "comfortable", "large"].includes(a.size))
-        appearance.size = a.size;
+        appearance.size = a.sizeVersion === 2 ? a.size : migrateLegacySize(a.size);
       applyAppearance(false);
     } catch {}
   }
