@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="obsidian" data-size="small">
+<html lang="en" data-theme="obsidian">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -14,6 +14,8 @@
     <link rel="icon" type="image/svg+xml" href="imgs/icon.svg" />
     <link rel="manifest" href="manifest.json" />
     <link rel="stylesheet" href="css/style.css" />
+    <link rel="preload" href="fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="fonts/tajawal-500-arabic.woff2" as="font" type="font/woff2" crossorigin />
     <title>ListX · Your space to focus</title>
     <script>
       try {
@@ -33,8 +35,15 @@
         const a = JSON.parse(localStorage.getItem(prefix + "listx-appearance") || "{}");
         if (["inter", "system", "editorial", "mono"].includes(a.font))
           document.documentElement.dataset.font = a.font;
-        if (["small", "compact", "comfortable", "large"].includes(a.size))
-          document.documentElement.dataset.size = a.sizeVersion === 2 ? a.size : ({small:"small",compact:"compact",comfortable:"large",large:"large"}[a.size]);
+        const v2 = { small: 14, compact: 15, comfortable: 16, large: 17 };
+        const v1 = { small: 14, compact: 15, comfortable: 17, large: 17 };
+        let px = 14;
+        if (a.sizeVersion === 3 && isFinite(parseFloat(a.sizePx)))
+          px = parseFloat(a.sizePx);
+        else if (Object.hasOwn(v2, a.size))
+          px = (a.sizeVersion === 2 ? v2 : v1)[a.size];
+        px = Math.min(22, Math.max(12, Math.round(px * 10) / 10));
+        document.documentElement.style.setProperty("--task-size", px + "px");
       } catch {}
     </script>
   </head>
@@ -411,12 +420,38 @@
       </section>
       <section class="settings-section">
         <h3>Task text size</h3>
-        <div class="size-options" role="group" aria-label="Task text size">
-          <button type="button" data-size-option="small" aria-pressed="true"><span style="font-size:14px">Aa</span>14px<small>Default</small></button>
-          <button type="button" data-size-option="compact" aria-pressed="false"><span style="font-size:15px">Aa</span>15px</button>
-          <button type="button" data-size-option="comfortable" aria-pressed="false"><span style="font-size:16px">Aa</span>16px</button>
-          <button type="button" data-size-option="large" aria-pressed="false"><span style="font-size:17px">Aa</span>17px</button>
+        <p>Type the exact size you want, decimals included.</p>
+        <div class="size-field">
+          <button
+            type="button"
+            class="size-step"
+            id="size-decrease"
+            aria-label="Decrease task text size"
+          >
+            −
+          </button>
+          <div class="size-input-wrap">
+            <input
+              id="size-input"
+              type="text"
+              inputmode="decimal"
+              autocomplete="off"
+              spellcheck="false"
+              aria-label="Task text size in pixels"
+            /><span class="size-unit" aria-hidden="true">px</span>
+          </div>
+          <button
+            type="button"
+            class="size-step"
+            id="size-increase"
+            aria-label="Increase task text size"
+          >
+            +
+          </button>
         </div>
+        <p class="settings-detail">
+          Any number from 12 to 22. No need to type px.
+        </p>
       </section>
       <div class="settings-preview">
         <span>LIVE PREVIEW</span>

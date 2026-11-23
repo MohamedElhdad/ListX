@@ -91,19 +91,37 @@ const PALETTES = {
   "light-blue": "#f0f4fa",
   "light-sage": "#faf1f5",
 };
-let appearance = { font: "inter", size: "small", sizeVersion: 2 };
+const SIZE_MIN = 12;
+const SIZE_MAX = 22;
+const SIZE_DEFAULT = 14;
+function clampSize(value) {
+  const n = parseFloat(value);
+  if (!isFinite(n)) return SIZE_DEFAULT;
+  return Math.min(SIZE_MAX, Math.max(SIZE_MIN, Math.round(n * 10) / 10));
+}
+function formatSize(n) {
+  return String(Math.round(n * 10) / 10);
+}
+// V1 slots meant 13/15/17/20px, clamped to 14/15/17/17. V2 slots meant
+// 14/15/16/17px. V3 stores the exact numeric size the user typed.
+const SIZE_SLOTS_V2 = { small: 14, compact: 15, comfortable: 16, large: 17 };
+const SIZE_SLOTS_V1 = { small: 14, compact: 15, comfortable: 17, large: 17 };
+function migrateSize(saved) {
+  if (saved.sizeVersion === 3 && isFinite(parseFloat(saved.sizePx)))
+    return clampSize(saved.sizePx);
+  if (Object.hasOwn(SIZE_SLOTS_V2, saved.size))
+    return saved.sizeVersion === 2
+      ? SIZE_SLOTS_V2[saved.size]
+      : SIZE_SLOTS_V1[saved.size];
+  return SIZE_DEFAULT;
+}
+let appearance = { font: "inter", sizePx: SIZE_DEFAULT, sizeVersion: 3 };
 try {
   const saved = JSON.parse(storage.get("listx-appearance", "{}"));
   if (["inter", "system", "editorial", "mono"].includes(saved.font))
     appearance.font = saved.font;
-  if (["small", "compact", "comfortable", "large"].includes(saved.size))
-    appearance.size = saved.sizeVersion === 2 ? saved.size : migrateLegacySize(saved.size);
+  appearance.sizePx = migrateSize(saved);
 } catch {}
-// V1 size names represented 13/15/17/20px. Keep allowed numeric choices,
-// and clamp removed extremes to the new 14..17px range.
-function migrateLegacySize(size) {
-  return { small: "small", compact: "compact", comfortable: "large", large: "large" }[size] || "small";
-}
 function setTheme(theme, save = true) {
   if (!Object.hasOwn(PALETTES, theme)) theme = "obsidian";
   document.documentElement.dataset.theme = theme;
@@ -117,7 +135,10 @@ function setTheme(theme, save = true) {
 }
 function applyAppearance(save = true) {
   document.documentElement.dataset.font = appearance.font;
-  document.documentElement.dataset.size = appearance.size;
+  document.documentElement.style.setProperty(
+    "--task-size",
+    `${appearance.sizePx}px`,
+  );
   if (save) storage.set("listx-appearance", JSON.stringify(appearance));
   document
     .querySelectorAll("[data-font-option]")
@@ -127,14 +148,10 @@ function applyAppearance(save = true) {
         button.dataset.fontOption === appearance.font,
       ),
     );
-  document
-    .querySelectorAll("[data-size-option]")
-    .forEach((button) =>
-      button.setAttribute(
-        "aria-pressed",
-        button.dataset.sizeOption === appearance.size,
-      ),
-    );
+  // Don't reformat the field while the user is typing in it.
+  const sizeInput = $("#size-input");
+  if (sizeInput && document.activeElement !== sizeInput)
+    sizeInput.value = formatSize(appearance.sizePx);
 }
 setTheme(storage.get("theme") || "obsidian", false);
 applyAppearance(false);
@@ -156,14 +173,35 @@ document.querySelectorAll("[data-font-option]").forEach((button) =>
     applyAppearance();
   }),
 );
-document.querySelectorAll("[data-size-option]").forEach((button) =>
-  button.addEventListener("click", () => {
-    appearance.size = button.dataset.sizeOption;
+const sizeInput = $("#size-input");
+function commitSizeInput() {
+  appearance.sizePx = clampSize(sizeInput.value);
+  applyAppearance();
+  sizeInput.value = formatSize(appearance.sizePx);
+}
+sizeInput.addEventListener("input", () => {
+  // Numbers and a single decimal point only; px is implied, never typed.
+  const cleaned = sizeInput.value
+    .replace(/[^\d.]/g, "")
+    .replace(/(\..*)\./g, "$1");
+  if (cleaned !== sizeInput.value) sizeInput.value = cleaned;
+  if (cleaned && isFinite(parseFloat(cleaned))) {
+    appearance.sizePx = clampSize(cleaned);
     applyAppearance();
-  }),
-);
+  }
+});
+sizeInput.addEventListener("change", commitSizeInput);
+sizeInput.addEventListener("blur", commitSizeInput);
+$("#size-decrease").addEventListener("click", () => {
+  appearance.sizePx = clampSize(Math.round((appearance.sizePx - 0.5) * 10) / 10);
+  applyAppearance();
+});
+$("#size-increase").addEventListener("click", () => {
+  appearance.sizePx = clampSize(Math.round((appearance.sizePx + 0.5) * 10) / 10);
+  applyAppearance();
+});
 $("#reset-appearance").addEventListener("click", () => {
-  appearance = { font: "inter", size: "small", sizeVersion: 2 };
+  appearance = { font: "inter", sizePx: SIZE_DEFAULT, sizeVersion: 3 };
   applyAppearance();
   setTheme("obsidian");
 });
@@ -486,8 +524,7 @@ window.addEventListener("storage", (event) => {
       const a = JSON.parse(event.newValue || "{}");
       if (["inter", "system", "editorial", "mono"].includes(a.font))
         appearance.font = a.font;
-      if (["small", "compact", "comfortable", "large"].includes(a.size))
-        appearance.size = a.sizeVersion === 2 ? a.size : migrateLegacySize(a.size);
+      appearance.sizePx = migrateSize(a);
       applyAppearance(false);
     } catch {}
   }

@@ -1013,7 +1013,7 @@ dialog > p:not(.eyebrow) {
     height: 34px;
   }
   main {
-    padding: 30px 18px 24px;
+    padding: 30px 10px 24px;
   }
   .intro {
     margin-bottom: 26px;
@@ -1180,8 +1180,8 @@ dialog > p:not(.eyebrow) {
 }
 @media (max-width: 350px) {
   main {
-    padding-left: 12px;
-    padding-right: 12px;
+    padding-left: 7px;
+    padding-right: 7px;
   }
   .sidebar {
     padding-left: 18px;
@@ -1327,12 +1327,6 @@ dialog > p:not(.eyebrow) {
 }
 [data-font="editorial"] {
   --task-font: Georgia, "Times New Roman", Tajawal, serif;
-}
-[data-size="compact"] {
-  --task-size: 15px;
-}
-[data-size="large"] {
-  --task-size: 17px;
 }
 body {
   font-family: var(--ui-font);
@@ -1648,15 +1642,13 @@ body {
 [data-theme^="light"] .choice-check {
   color: var(--ring);
 }
-.font-options,
-.size-options {
+.font-options {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
   margin-top: 13px;
 }
-.font-options button,
-.size-options button {
+.font-options button {
   min-width: 0;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -1670,8 +1662,7 @@ body {
   gap: 5px;
   min-height: 72px;
 }
-.font-options button[aria-pressed="true"],
-.size-options button[aria-pressed="true"] {
+.font-options button[aria-pressed="true"] {
   border-color: var(--ring);
   color: var(--text);
   background: var(--hover);
@@ -1690,21 +1681,68 @@ body {
 .font-options button[data-font-option="editorial"] > span {
   font-family: Georgia, serif;
 }
-.font-options small,
-.size-options small {
+.font-options small {
   font-size: 9px;
   color: var(--muted);
 }
-.size-options button > span {
-  font-size: 18px;
-  line-height: 1.4;
+.size-field {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  margin-top: 13px;
+}
+.size-input-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+.size-input-wrap input {
+  width: 100%;
+  min-height: 52px;
+  padding: 10px 40px 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
   color: var(--text);
+  font-size: 17px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
 }
-.size-options button[data-size-option="compact"] > span {
-  font-size: 15px;
+.size-input-wrap input:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 1px;
+  border-color: var(--ring);
 }
-.size-options button[data-size-option="large"] > span {
-  font-size: 20px;
+.size-unit {
+  position: absolute;
+  right: 14px;
+  color: var(--muted);
+  font-size: 12px;
+  pointer-events: none;
+}
+.size-step {
+  width: 52px;
+  min-height: 52px;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 22px;
+  font-weight: 500;
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+.size-step:hover {
+  background: var(--hover);
+  border-color: var(--ring);
+}
+.size-step:active {
+  transform: scale(0.95);
 }
 .settings-section .settings-detail {
   font-size: 10px;
@@ -1874,8 +1912,7 @@ body {
   .settings-bottom {
     padding: 12px 20px;
   }
-  .font-options button,
-  .size-options button {
+  .font-options button {
     font-size: 10px;
   }
   .workspace-footer {
@@ -1915,8 +1952,7 @@ body {
   .settings-heading h2 {
     font-size: 20px;
   }
-  .font-options button,
-  .size-options button {
+  .font-options button {
     font-size: 9px;
   }
   .settings-section {
@@ -1949,10 +1985,8 @@ body {
 [data-theme="petrol"] { color-scheme:dark; --bg:#0c1b20; --sidebar:#0f242a; --surface:#122d34; --raised:#173940; --hover:#1b444b; --border:#2c5259; --text:#eaf7f6; --muted:#9dbfc2; --accent:#7dd9d1; --accent-ink:#103733; --ring:#7dd9d1; }
 [data-theme="espresso"] { color-scheme:dark; --bg:#1b1512; --sidebar:#211a16; --surface:#29201b; --raised:#382a22; --hover:#443329; --border:#574236; --text:#fcf1e9; --muted:#c0ad9e; --accent:#eac293; --accent-ink:#3a2819; --ring:#eac293; }
 [data-font="mono"] { --task-font:ui-monospace, 'SFMono-Regular', Consolas, 'Liberation Mono', Tajawal, monospace; }
-[data-size="small"] { --task-size:14px; }
 .font-options button[data-font-option="mono"] > span { font-family:ui-monospace,monospace; }
-.size-options button[data-size-option="small"] > span { font-size:13px; }
-.font-options,.size-options { grid-template-columns:repeat(4,minmax(0,1fr)); }
+.font-options { grid-template-columns:repeat(4,minmax(0,1fr)); }
 .filter span { display:inline-flex;align-items:center;justify-content:center;min-width:24px;min-height:24px;padding:2px 6px;background:var(--text);color:var(--bg);border:1px solid var(--text);font-weight:750;font-size:11px;border-radius:6px;font-variant-numeric:tabular-nums; }
 .filter.selected span { background:var(--accent-ink);color:var(--accent);border-color:var(--accent-ink); }
 .toast { background:var(--surface);color:var(--text);border:1px solid var(--border);border-left:3px solid var(--accent);bottom:calc(18px + env(safe-area-inset-bottom,0px) + var(--keyboard-inset,0px));border-radius:14px;gap:12px;padding:10px 12px;font-size:13px;z-index:20; }
@@ -2001,7 +2035,7 @@ body {
  #settings-button { position:absolute;right:20px;top:calc(15px + env(safe-area-inset-top,0px));width:40px;height:40px; }
  .topbar { height:44px;padding-top:0; }
  #task-input { font-size:16px; }
- .task { padding:12px 7px 12px 12px;gap:8px; }
+ .task { padding:12px 4px 12px 8px;gap:7px; }
  .task-actions { margin-left:0;gap:0; }
  .task-actions button { width:32px;min-width:32px;min-height:44px;padding:0; }
  .task-actions svg { width:14px;height:14px; }
@@ -2011,7 +2045,7 @@ body {
 @media(max-width:350px) {
  .sidebar { padding-left:18px;padding-right:69px; }
  #settings-button { right:15px; }
- .task { padding-left:8px;padding-right:4px;gap:6px; }
+ .task { padding-left:6px;padding-right:3px;gap:6px; }
  .task-actions button { width:30px;min-width:30px; }
 }
 
@@ -2022,4 +2056,3 @@ body {
 [data-theme="obsidian"] .task-checkbox:checked { background:#7d97bc; border-color:#7d97bc; }
 
 /* Four task sizes; existing saved size slots remain compatible. */
-[data-size="comfortable"] { --task-size:16px; }

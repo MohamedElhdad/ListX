@@ -1,6 +1,6 @@
 "use strict";
 const CACHE_PREFIX = `listx:${self.registration.scope}:`;
-const CACHE_NAME = CACHE_PREFIX + "v7-appearance-icon";
+const CACHE_NAME = CACHE_PREFIX + "v8-size-input-layout-speed";
 const ASSETS = [
   "./",
   "./index.html",
