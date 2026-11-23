@@ -2014,3 +2014,9 @@ body {
  .task { padding-left:8px;padding-right:4px;gap:6px; }
  .task-actions button { width:30px;min-width:30px; }
 }
+
+/* Obsidian: requested blue only on the brand and task checkboxes. */
+[data-theme="obsidian"] .brand-x { color:#7d97bc; }
+[data-theme="obsidian"] .brand-mark { background:#7d97bc; }
+[data-theme="obsidian"] .task-checkbox { border-color:#7d97bc; }
+[data-theme="obsidian"] .task-checkbox:checked { background:#7d97bc; }

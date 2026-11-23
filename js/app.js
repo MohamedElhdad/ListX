@@ -69,6 +69,7 @@ let currentFilter = "all";
 let search = "";
 let undoSnapshot = null;
 let toastTimer;
+const UNDO_DURATION = 8000;
 let editingId = null;
 let lastFocus = null;
 
@@ -434,16 +435,22 @@ for (const dialog of document.querySelectorAll("dialog"))
     )
       dialog.close();
   });
+function dismissToast() {
+  clearTimeout(toastTimer);
+  // Avoid leaving keyboard focus inside a notification that is now hidden.
+  if ($("#toast").contains(document.activeElement))
+    ($(".drag-handle") || $("#settings-button")).focus({ preventScroll: true });
+  $("#toast").hidden = true;
+  $("#undo-button").hidden = true;
+  undoSnapshot = null;
+}
 function showToast(message, undo = false) {
   clearTimeout(toastTimer);
   $("#toast-message").textContent = message;
   $("#undo-button").hidden = !undo;
   $("#toast").hidden = false;
-  // Undo remains available until dismissed or replaced, not a short timed target.
-  if (!undo)
-    toastTimer = setTimeout(() => {
-      $("#toast").hidden = true;
-    }, 5000);
+  // Give Undo a generous but bounded lifetime; a new deletion restarts it.
+  toastTimer = setTimeout(dismissToast, undo ? UNDO_DURATION : 5000);
 }
 $("#undo-button").addEventListener("click", () => {
   if (!undoSnapshot) return;
@@ -454,15 +461,11 @@ $("#undo-button").addEventListener("click", () => {
     ...undoSnapshot.map((t) => currentById.get(t.id) || t),
     ...tasks.filter((t) => !restoredIds.has(t.id)),
   ];
-  undoSnapshot = null;
+  dismissToast();
   commit("Tasks restored");
-  $("#toast").hidden = true;
   ($(".drag-handle") || $("#settings-button")).focus({ preventScroll: true });
 });
-$("#dismiss-toast").addEventListener("click", () => {
-  $("#toast").hidden = true;
-  undoSnapshot = null;
-});
+$("#dismiss-toast").addEventListener("click", dismissToast);
 window.addEventListener("storage", (event) => {
   if (storagePrefix && !event.key?.startsWith(storagePrefix)) return;
   const key = storagePrefix ? event.key.slice(storagePrefix.length) : event.key;
@@ -515,6 +518,7 @@ function installReorder(row, taskId) {
     if (!row.isConnected || row.parentElement !== $('#task-list')) return;
     const state = {
       row, id: taskId, input, identifier, originX: x, originY: y, y,
+      captureTarget: $("#task-list"),
       active: false, preview: null, frame: null, timer: null,
       idleTimer: null, hardTimer: null, autoScrollUntil: 0,
       finish, move,
@@ -580,7 +584,8 @@ function installReorder(row, taskId) {
       state.hardTimer = setTimeout(() => finish(true), 30000);
       try { navigator.vibrate?.(20); } catch {}
       if (input === 'pointer') {
-        try { row.setPointerCapture(identifier); } catch {}
+        // Capture on the stable list, not the row that moves between DOM slots.
+        try { state.captureTarget.setPointerCapture(identifier); } catch {}
       }
       state.frame = requestAnimationFrame(frame);
     }
@@ -606,7 +611,7 @@ function installReorder(row, taskId) {
       clearTimeout(state.hardTimer);
       cancelAnimationFrame(state.frame);
       if (input === 'pointer') {
-        try { if (row.hasPointerCapture(identifier)) row.releasePointerCapture(identifier); } catch {}
+        try { if (state.captureTarget.hasPointerCapture(identifier)) state.captureTarget.releasePointerCapture(identifier); } catch {}
       }
       document.body.classList.remove('is-reordering');
       $('.task-panel').classList.remove('reorder-mode');
@@ -657,6 +662,7 @@ function installReorder(row, taskId) {
     if (event.pointerType === 'touch' || event.button !== 0 || ignore(event.target)) return;
     press(event.clientX, event.clientY, 'pointer', event.pointerId, event.target.closest('.drag-handle') ? 120 : 420);
   });
+  row.addEventListener('dragstart', event => { if (!ignore(event.target)) event.preventDefault(); });
   row.addEventListener('contextmenu', event => { if (!ignore(event.target)) event.preventDefault(); });
 }
 // Listen above the row: rendering, release outside the row, lost capture and
