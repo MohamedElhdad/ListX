@@ -151,15 +151,15 @@ svg {
 .brand-mark {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
   border-radius: 10px;
   color: var(--accent);
   margin-right: 11px;
 }
 .brand-mark svg {
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
   border-radius: 9px;
 }
 .brand-mark .bm-from { stop-color: color-mix(in srgb, currentColor 55%, #ffffff); }
@@ -968,13 +968,13 @@ dialog > p:not(.eyebrow) {
     font-size: 25px;
   }
   .brand-mark {
-    width: 30px;
-    height: 30px;
+    width: 36px;
+    height: 36px;
     margin-right: 9px;
   }
   .brand-mark svg {
-    width: 30px;
-    height: 30px;
+    width: 36px;
+    height: 36px;
   }
   .workspace-label,
   .nav-item,

@@ -1,6 +1,6 @@
 "use strict";
 const CACHE_PREFIX = `listx:${self.registration.scope}:`;
-const CACHE_NAME = CACHE_PREFIX + "v9-update-prompt";
+const CACHE_NAME = CACHE_PREFIX + "v10-larger-brand";
 const ASSETS = [
   "./",
   "./index.html",
