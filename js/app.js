@@ -460,9 +460,17 @@ $("#clear-confirm").addEventListener("click", () => {
   $("#undo-button").focus({ preventScroll: true });
 });
 $("#clear-completed").addEventListener("click", () => {
+  $("#clear-completed-dialog").showModal();
+  $("#clear-completed-cancel").focus();
+});
+$("#clear-completed-cancel").addEventListener("click", () =>
+  $("#clear-completed-dialog").close(),
+);
+$("#clear-completed-confirm").addEventListener("click", () => {
   undoSnapshot = tasks.map((t) => ({ ...t }));
   tasks = tasks.filter((t) => !t.done);
   commit("Completed tasks cleared");
+  $("#clear-completed-dialog").close();
   showToast("Completed tasks cleared", true);
   $("#undo-button").focus({ preventScroll: true });
 });

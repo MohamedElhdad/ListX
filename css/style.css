@@ -1373,6 +1373,28 @@ body {
 #clear-all:disabled {
   opacity: 0.55;
 }
+#clear-completed {
+  padding: 8px;
+  min-width: 40px;
+  min-height: 36px;
+  justify-content: center;
+  border: 1px solid var(--danger-border);
+  background: var(--danger-fill);
+  color: var(--danger-text);
+  border-radius: 8px;
+  transition:
+    filter 0.15s,
+    background 0.15s,
+    color 0.15s,
+    transform 0.15s;
+}
+#clear-completed svg {
+  width: 18px;
+  height: 18px;
+}
+#clear-completed:not(:disabled):hover {
+  filter: brightness(1.15);
+}
 .filters {
   background: transparent;
   padding: 0;

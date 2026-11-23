@@ -89,6 +89,18 @@
         <symbol id="i-trash" viewBox="0 0 24 24">
           <path d="M4 6h16M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7m4-7v7" />
         </symbol>
+        <symbol id="i-check-remove" viewBox="0 0 24 24">
+          <rect
+            x="2.2"
+            y="3.3"
+            width="14.6"
+            height="15.2"
+            rx="4.2"
+            stroke-width="2.2"
+          />
+          <path d="m5.6 11.5 2.8 2.8 5.9-6.7" stroke-width="2.2" />
+          <path d="m17.2 16 4.8 4.8m0-4.8-4.8 4.8" stroke-width="2.2" />
+        </symbol>
         <symbol id="i-arrow" viewBox="0 0 24 24">
           <path d="M5 12h14m-5-5 5 5-5 5" />
         </symbol>
@@ -312,9 +324,11 @@
                 type="button"
                 class="text-button"
                 id="clear-completed"
+                aria-label="Clear completed tasks"
+                title="Clear completed tasks"
                 hidden
               >
-                Clear completed
+                <svg><use href="#i-check-remove" /></svg>
               </button>
             </footer>
           </section>
@@ -524,6 +538,32 @@
           Keep tasks</button
         ><button type="button" class="danger-button" id="clear-confirm">
           Clear all
+        </button>
+      </div>
+    </dialog>
+    <dialog
+      id="clear-completed-dialog"
+      aria-labelledby="clear-completed-title"
+    >
+      <p class="eyebrow">TIDY UP</p>
+      <h2 id="clear-completed-title">Clear completed tasks?</h2>
+      <p id="clear-completed-description">
+        Only finished tasks are removed. You can undo this right after
+        clearing.
+      </p>
+      <div class="dialog-buttons">
+        <button
+          type="button"
+          class="secondary-button"
+          id="clear-completed-cancel"
+        >
+          Keep tasks</button
+        ><button
+          type="button"
+          class="danger-button"
+          id="clear-completed-confirm"
+        >
+          Clear completed
         </button>
       </div>
     </dialog>
