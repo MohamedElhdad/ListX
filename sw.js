@@ -1,6 +1,10 @@
 "use strict";
 const CACHE_PREFIX = `listx:${self.registration.scope}:`;
-const CACHE_NAME = CACHE_PREFIX + "v10-larger-brand";
+const CACHE_NAME = CACHE_PREFIX + "v11-faster-updates";
+// Install revalidates every asset instead of always re-downloading it:
+// unchanged files answer 304 and reuse the HTTP cache body, so an update
+// only downloads the files that actually changed. Changed or missing files
+// still arrive fresh from the network, exactly as before.
 const ASSETS = [
   "./",
   "./index.html",
@@ -19,19 +23,31 @@ const ASSETS = [
 ];
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) =>
-      Promise.all(
-        ASSETS.map(async (asset) => {
-          const response = await fetch(new Request(asset, { cache: "reload" }));
+    caches.open(CACHE_NAME).then(async (cache) => {
+      const store = async (asset) => {
+        const response = await fetch(new Request(asset, { cache: "no-cache" }));
+        if (!response.ok) throw new Error("App asset unavailable");
+        await cache.put(asset, response);
+      };
+      await Promise.all([
+        // "./" and "./index.html" are the same document: fetch it once
+        // and store it under both keys instead of downloading it twice.
+        (async () => {
+          const response = await fetch(
+            new Request("./index.html", { cache: "no-cache" }),
+          );
           if (!response.ok) throw new Error("App asset unavailable");
-          await cache.put(asset, response);
-        }),
-      ),
-    ),
+          await cache.put("./", response.clone());
+          await cache.put("./index.html", response);
+        })(),
+        ...ASSETS.filter(
+          (asset) => asset !== "./" && asset !== "./index.html",
+        ).map(store),
+      ]);
+    }),
   );
   // Let an existing session finish before activating a different app version.
 });
-// The page asks the waiting worker to take over once the user taps Update.
 self.addEventListener("message", (event) => {
   if (event.data?.type === "SKIP_WAITING") self.skipWaiting();
 });
