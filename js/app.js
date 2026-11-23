@@ -754,12 +754,120 @@ window.addEventListener('scroll', () => {
 }, { passive: true, capture: true });
 updateAdd();
 render();
-// Never register a service worker from file://; opening index.html still works.
+// Update flow: a new worker waits, the app pauses behind a modal until the
+// user taps Update. The update is already downloaded, so the tap does not
+// need a connection. If activation fails twice, the modal offers a way back
+// to the current version so nobody gets stuck; tasks are never touched.
+let updateRequested = false;
 if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    try {
+      sessionStorage.removeItem("listx-update-attempts");
+      sessionStorage.removeItem("listx-update-skip");
+    } catch {}
+    if (updateRequested) location.reload();
+  });
   window.addEventListener("load", () =>
-    navigator.serviceWorker.register("./sw.js").catch(() => {
-      $("#connection-status").textContent = "Offline setup unavailable";
-    }),
+    navigator.serviceWorker
+      .register("./sw.js")
+      .then((reg) => {
+        const overlay = $("#update-overlay");
+        const updateBtn = $("#update-button");
+        const laterBtn = $("#update-later");
+        const errorText = $("#update-error");
+        let attempts = 0;
+        try {
+          attempts =
+            parseInt(
+              sessionStorage.getItem("listx-update-attempts") || "0",
+              10,
+            ) || 0;
+        } catch {}
+        let lastFocus = null;
+        const setInert = (on) => {
+          document.body
+            .querySelectorAll(":scope > *")
+            .forEach((el) => {
+              if (el !== overlay)
+                on
+                  ? el.setAttribute("inert", "")
+                  : el.removeAttribute("inert");
+            });
+        };
+        // Keep Tab cycling among the modal's own buttons while it is open.
+        const trap = (e) => {
+          if (e.key !== "Tab") return;
+          const btns = [...overlay.querySelectorAll("button")].filter(
+            (b) => !b.hidden && !b.disabled,
+          );
+          e.preventDefault();
+          if (!btns.length) return;
+          const i = btns.indexOf(document.activeElement);
+          const next =
+            i === -1
+              ? 0
+              : (i + (e.shiftKey ? btns.length - 1 : 1)) % btns.length;
+          btns[next].focus();
+        };
+        const show = () => {
+          lastFocus = document.activeElement;
+          overlay.hidden = false;
+          setInert(true);
+          document.addEventListener("keydown", trap, true);
+          // Two failed tries: offer a way back to the current version.
+          const failed = attempts >= 2;
+          errorText.hidden = !failed;
+          laterBtn.hidden = !failed;
+          if (failed) updateBtn.textContent = "Try again";
+          updateBtn.focus({ preventScroll: true });
+        };
+        const hide = () => {
+          overlay.hidden = true;
+          setInert(false);
+          document.removeEventListener("keydown", trap, true);
+          if (lastFocus?.isConnected)
+            lastFocus.focus({ preventScroll: true });
+        };
+        const offer = () => {
+          // Only an update counts: a first install has no controller yet.
+          if (!navigator.serviceWorker.controller) return;
+          try {
+            if (sessionStorage.getItem("listx-update-skip")) return;
+          } catch {}
+          show();
+        };
+        if (reg.waiting) offer();
+        reg.addEventListener("updatefound", () => {
+          const worker = reg.installing;
+          worker?.addEventListener("statechange", () => {
+            if (worker.state === "installed") offer();
+          });
+        });
+        updateBtn.addEventListener("click", () => {
+          updateRequested = true;
+          attempts++;
+          try {
+            sessionStorage.setItem("listx-update-attempts", String(attempts));
+          } catch {}
+          errorText.hidden = true;
+          laterBtn.hidden = true;
+          updateBtn.disabled = true;
+          updateBtn.textContent = "Updating\u2026";
+          if (reg.waiting) reg.waiting.postMessage({ type: "SKIP_WAITING" });
+          // Fallback: if no controllerchange arrives, reload anyway; a
+          // repeated failure then surfaces the error state instead of a loop.
+          setTimeout(() => location.reload(), 4000);
+        });
+        laterBtn.addEventListener("click", () => {
+          try {
+            sessionStorage.setItem("listx-update-skip", "1");
+          } catch {}
+          hide();
+        });
+      })
+      .catch(() => {
+        $("#connection-status").textContent = "Offline setup unavailable";
+      }),
   );
 }
 

@@ -101,7 +101,42 @@
       <aside class="sidebar">
         <a class="brand" href="./" aria-label="ListX home"
           ><span class="brand-mark"
-            ><svg><use href="#i-check" /></svg></span
+            ><svg viewBox="0 0 512 512" aria-hidden="true"
+              ><defs
+                ><linearGradient id="bm-base" x2="1" y2="1"
+                  ><stop stop-color="#202936" /><stop
+                    offset="1"
+                    stop-color="#0a0b0d" /></linearGradient
+                ><linearGradient id="bm-gloss" x2="1" y2="1"
+                  ><stop class="bm-from" stop-color="#b9cee8" /><stop
+                    class="bm-to"
+                    offset="1"
+                    stop-color="#7d97bc" /></linearGradient></defs
+              ><rect width="512" height="512" rx="112" fill="url(#bm-base)" />
+              <rect
+                x="18"
+                y="18"
+                width="476"
+                height="476"
+                rx="96"
+                fill="none"
+                stroke="#ffffff"
+                stroke-opacity=".07"
+                stroke-width="2" />
+              <path
+                d="M338 143H172a29 29 0 0 0-29 29v168a29 29 0 0 0 29 29h168a29 29 0 0 0 29-29v-61"
+                fill="none"
+                stroke="url(#bm-gloss)"
+                stroke-width="27"
+                stroke-linecap="round" />
+              <path
+                d="m211 244 49 49 120-138"
+                fill="none"
+                stroke="url(#bm-gloss)"
+                stroke-width="34"
+                stroke-linecap="round"
+                stroke-linejoin="round" /></svg
+          ></span
           >List<span class="brand-x">X</span></a
         >
         <div class="workspace-label">PERSONAL WORKSPACE</div>
@@ -492,6 +527,29 @@
         </button>
       </div>
     </dialog>
+    <div class="update-overlay" id="update-overlay" hidden>
+      <div
+        class="update-modal"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="update-title"
+        aria-describedby="update-text"
+      >
+        <h2 id="update-title">A new version of ListX is ready</h2>
+        <p id="update-text">
+          Update now to get the latest improvements. Your tasks and settings
+          stay exactly as they are.
+        </p>
+        <p id="update-error" hidden>
+          The update could not finish. You can try again, or keep using the
+          current version for now.
+        </p>
+        <button type="button" id="update-button">Update</button>
+        <button type="button" id="update-later" hidden>
+          Keep current version
+        </button>
+      </div>
+    </div>
     <div class="toast" id="toast" role="status" hidden>
       <span id="toast-message"></span
       ><button type="button" id="undo-button" hidden>Undo</button

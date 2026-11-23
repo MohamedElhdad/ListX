@@ -1,6 +1,6 @@
 "use strict";
 const CACHE_PREFIX = `listx:${self.registration.scope}:`;
-const CACHE_NAME = CACHE_PREFIX + "v8-size-input-layout-speed";
+const CACHE_NAME = CACHE_PREFIX + "v9-update-prompt";
 const ASSETS = [
   "./",
   "./index.html",
@@ -30,6 +30,10 @@ self.addEventListener("install", (event) => {
     ),
   );
   // Let an existing session finish before activating a different app version.
+});
+// The page asks the waiting worker to take over once the user taps Update.
+self.addEventListener("message", (event) => {
+  if (event.data?.type === "SKIP_WAITING") self.skipWaiting();
 });
 self.addEventListener("activate", (event) => {
   event.waitUntil(

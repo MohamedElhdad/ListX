@@ -154,15 +154,16 @@ svg {
   width: 34px;
   height: 34px;
   border-radius: 10px;
-  background: var(--accent);
-  color: var(--accent-ink);
+  color: var(--accent);
   margin-right: 11px;
 }
 .brand-mark svg {
-  width: 23px;
-  height: 23px;
-  stroke-width: 2.7;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
 }
+.brand-mark .bm-from { stop-color: color-mix(in srgb, currentColor 55%, #ffffff); }
+.brand-mark .bm-to { stop-color: currentColor; }
 .brand-x {
   color: var(--accent);
 }
@@ -969,12 +970,11 @@ dialog > p:not(.eyebrow) {
   .brand-mark {
     width: 30px;
     height: 30px;
-    border-radius: 9px;
     margin-right: 9px;
   }
   .brand-mark svg {
-    width: 20px;
-    height: 20px;
+    width: 30px;
+    height: 30px;
   }
   .workspace-label,
   .nav-item,
@@ -1992,6 +1992,18 @@ body {
 .toast { background:var(--surface);color:var(--text);border:1px solid var(--border);border-left:3px solid var(--accent);bottom:calc(18px + env(safe-area-inset-bottom,0px) + var(--keyboard-inset,0px));border-radius:14px;gap:12px;padding:10px 12px;font-size:13px;z-index:20; }
 .toast #undo-button { background:var(--accent);color:var(--accent-ink);border-radius:9px;padding:8px 14px;min-height:44px;font-size:13px;font-weight:700; }
 .toast #dismiss-toast { min-width:40px;min-height:44px;color:var(--muted); }
+/* Update modal: fixed colors so the green stays identical in every theme. */
+.update-overlay { position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(9,12,16,.62);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px); }
+.update-overlay[hidden] { display:none; }
+.update-modal { width:100%;max-width:340px;margin-bottom:12vh;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:18px;box-shadow:0 24px 70px #0008;padding:26px 24px 24px;text-align:center; }
+.update-modal h2 { margin:0 0 10px;font-size:19px;line-height:1.35;font-weight:700; }
+.update-modal p { margin:0 0 20px;font-size:14px;line-height:1.6;color:var(--muted); }
+.update-modal #update-button { width:100%;min-height:48px;border-radius:12px;border:1.5px solid #16a34a;background:rgba(22,163,74,.12);color:#16a34a;font-size:15px;font-weight:700;letter-spacing:.2px; }
+.update-modal #update-button:active { background:rgba(22,163,74,.22); }
+.update-modal #update-button:disabled { opacity:.7; }
+.update-modal #update-error { margin:0 0 20px;font-size:13px;line-height:1.6;color:#b45309; }
+[data-theme="dark"] .update-modal #update-error, [data-theme="dark-blue"] .update-modal #update-error, [data-theme="obsidian"] .update-modal #update-error, [data-theme="graphite"] .update-modal #update-error, [data-theme="petrol"] .update-modal #update-error, [data-theme="espresso"] .update-modal #update-error { color:#f0b35c; }
+.update-modal #update-later { width:100%;min-height:44px;margin-top:10px;background:none;border:0;color:var(--muted);font-size:13px;text-decoration:underline; }
 #settings-button svg { width:23px;height:23px;stroke-width:1.7; }
 @media(max-width:700px) {
  .topbar { padding-top:calc(15px + env(safe-area-inset-top,0px)); }
@@ -2051,7 +2063,7 @@ body {
 
 /* Obsidian: requested blue only on the brand and task checkboxes. */
 [data-theme="obsidian"] .brand-x { color:#7d97bc; }
-[data-theme="obsidian"] .brand-mark { background:#7d97bc; }
+[data-theme="obsidian"] .brand-mark { color:#7d97bc; }
 [data-theme="obsidian"] .task-checkbox { border-color:#aab9cd; }
 [data-theme="obsidian"] .task-checkbox:checked { background:#7d97bc; border-color:#7d97bc; }
 
