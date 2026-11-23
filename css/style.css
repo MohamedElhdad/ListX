@@ -560,6 +560,7 @@ input::placeholder {
   color: #291b18;
 }
 .list-toolbar {
+  flex-wrap: wrap;
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
@@ -596,25 +597,6 @@ input::placeholder {
 }
 .filter:hover {
   color: var(--text);
-}
-.search-field {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  max-width: 160px;
-}
-.search-field svg {
-  width: 15px;
-  height: 15px;
-  color: var(--muted);
-}
-.search-field input {
-  font-size: 11px;
-  background: none;
-  border: 0;
-  width: 100%;
-  height: 36px;
-  outline-offset: 0;
 }
 .task-list {
   list-style: none;
@@ -924,9 +906,6 @@ dialog > p:not(.eyebrow) {
   .stat-label {
     font-size: 10px;
   }
-  .search-field {
-    max-width: 120px;
-  }
   .list-toolbar {
     padding-left: 20px;
     padding-right: 20px;
@@ -1107,20 +1086,6 @@ dialog > p:not(.eyebrow) {
     padding: 8px 9px;
     min-height: 34px;
   }
-  .search-field {
-    max-width: none;
-    flex: 1;
-    min-width: 82px;
-    gap: 5px;
-  }
-  .search-field input {
-    font-size: 10px;
-    min-width: 60px;
-  }
-  .search-field svg {
-    width: 13px;
-    height: 13px;
-  }
   .task {
     padding: 15px;
     gap: 11px;
@@ -1198,15 +1163,6 @@ dialog > p:not(.eyebrow) {
   }
   .list-toolbar {
     gap: 9px;
-  }
-  .search-field {
-    flex-basis: 100%;
-    border: 1px solid var(--border);
-    padding: 0 10px;
-    border-radius: 6px;
-  }
-  .search-field input {
-    height: 34px;
   }
   .task {
     padding-left: 12px;
@@ -1357,6 +1313,8 @@ body {
   background: var(--hover);
 }
 #clear-all {
+  margin-left: auto;
+  flex-shrink: 0;
   padding: 10px 13px;
   min-height: 40px;
   border: 1px solid var(--danger-border);
@@ -1854,8 +1812,16 @@ body {
     font-size: 11px;
   }
   .list-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
     padding: 0 15px 17px;
     gap: 14px;
+  }
+  .list-toolbar .filters {
+    justify-self: start;
+  }
+  .list-toolbar #clear-all {
+    justify-self: end;
   }
   .filters {
     gap: 4px;
@@ -1869,17 +1835,6 @@ body {
   .filter span {
     font-size: 9px;
     padding: 2px 4px;
-  }
-  .search-field {
-    flex-basis: 100%;
-    border: 1px solid var(--border);
-    padding: 0 11px;
-    border-radius: 7px;
-    min-width: 0;
-  }
-  .search-field input {
-    height: 39px;
-    font-size: 11px;
   }
   .list-label {
     padding: 15px 15px 5px;

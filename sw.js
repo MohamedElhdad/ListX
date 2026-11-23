@@ -1,6 +1,6 @@
 "use strict";
 const CACHE_PREFIX = `listx:${self.registration.scope}:`;
-const CACHE_NAME = CACHE_PREFIX + "v13-update-modal-polish";
+const CACHE_NAME = CACHE_PREFIX + "v14-remove-search";
 // Install revalidates every asset instead of always re-downloading it:
 // unchanged files answer 304 and reuse the HTTP cache body, so an update
 // only downloads the files that actually changed. Changed or missing files

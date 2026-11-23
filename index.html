@@ -79,10 +79,6 @@
             d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"
           />
         </symbol>
-        <symbol id="i-search" viewBox="0 0 24 24">
-          <circle cx="10.5" cy="10.5" r="6.5" />
-          <path d="m16 16 4 4" />
-        </symbol>
         <symbol id="i-edit" viewBox="0 0 24 24">
           <path d="m15 5 4 4M4 20l5-1L20 8a2.8 2.8 0 0 0-4-4L5 15l-1 5Z" />
         </symbol>
@@ -241,14 +237,6 @@
                 <h2>My tasks <span id="heading-count">0</span></h2>
                 <p>A clear list. A clear mind.</p>
               </div>
-              <button
-                class="text-button danger"
-                id="clear-all"
-                type="button"
-                disabled
-              >
-                <svg><use href="#i-trash" /></svg>Clear all
-              </button>
             </div>
             <form id="add-form" autocomplete="off">
               <label class="sr-only" for="task-input">New task</label
@@ -293,16 +281,14 @@
                   Done <span id="filter-completed">0</span>
                 </button>
               </div>
-              <div class="search-field">
-                <svg><use href="#i-search" /></svg
-                ><label class="sr-only" for="search-input">Search tasks</label
-                ><input
-                  id="search-input"
-                  type="search"
-                  placeholder="Search tasks"
-                  autocomplete="off"
-                />
-              </div>
+              <button
+                class="text-button danger"
+                id="clear-all"
+                type="button"
+                disabled
+              >
+                <svg><use href="#i-trash" /></svg>Clear all
+              </button>
             </div>
             <div class="list-label">
               <span id="list-summary">YOUR LIST</span

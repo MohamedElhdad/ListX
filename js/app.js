@@ -66,7 +66,6 @@ function readTasks() {
 let recoveryNeeded = false;
 let tasks = readTasks();
 let currentFilter = "all";
-let search = "";
 let undoSnapshot = null;
 let toastTimer;
 const UNDO_DURATION = 8000;
@@ -339,32 +338,26 @@ function render() {
     : "A fresh start";
   $("#clear-all").disabled = !total || recoveryNeeded;
   $("#clear-completed").hidden = !done;
-  const query = search.trim().toLocaleLowerCase();
   const visible = tasks.filter(
     (t) =>
-      (currentFilter === "all" ||
-        (currentFilter === "completed" ? t.done : !t.done)) &&
-      t.text.toLocaleLowerCase().includes(query),
+      currentFilter === "all" ||
+      (currentFilter === "completed" ? t.done : !t.done),
   );
   $("#task-list").replaceChildren(...visible.map(taskRow));
   $("#list-summary").textContent =
-    `${visible.length} ${visible.length === 1 ? "TASK" : "TASKS"}${search.trim() ? " FOUND" : currentFilter === "all" ? " IN YOUR LIST" : currentFilter === "active" ? " IN PROGRESS" : " COMPLETED"}`;
+    `${visible.length} ${visible.length === 1 ? "TASK" : "TASKS"}${currentFilter === "all" ? " IN YOUR LIST" : currentFilter === "active" ? " IN PROGRESS" : " COMPLETED"}`;
   $("#empty-state").hidden = visible.length > 0;
   if (!visible.length) {
-    $("#empty-state h3").textContent = query
-      ? "No matching tasks"
-      : !total
-        ? "Your next chapter starts here"
-        : currentFilter === "completed"
-          ? "Good things take a first step"
-          : "A little breathing room";
-    $("#empty-state p").textContent = query
-      ? "Try a different search or switch filters."
-      : !total
-        ? "Add your first task. Keep it small, make it count."
-        : currentFilter === "completed"
-          ? "Your completed tasks will appear here."
-          : "All caught up. Take a moment for yourself.";
+    $("#empty-state h3").textContent = !total
+      ? "Your next chapter starts here"
+      : currentFilter === "completed"
+        ? "Good things take a first step"
+        : "A little breathing room";
+    $("#empty-state p").textContent = !total
+      ? "Add your first task. Keep it small, make it count."
+      : currentFilter === "completed"
+        ? "Your completed tasks will appear here."
+        : "All caught up. Take a moment for yourself.";
   }
 }
 function updateAdd() {
@@ -382,8 +375,6 @@ $("#add-form").addEventListener("submit", (event) => {
   tasks.push({ id: id(), text, done: false });
   // Show a newly added task even when the user was in a filtered view.
   setFilter("all");
-  search = "";
-  $("#search-input").value = "";
   $("#task-input").value = "";
   storage.set("task-input", "", true);
   updateAdd();
@@ -405,13 +396,7 @@ document
     button.addEventListener("click", () => setFilter(button.dataset.filter)),
   );
 $("#all-nav").addEventListener("click", () => {
-  search = "";
-  $("#search-input").value = "";
   setFilter("all");
-});
-$("#search-input").addEventListener("input", (event) => {
-  search = event.target.value;
-  render();
 });
 
 function openEdit(taskId) {
@@ -548,7 +533,7 @@ function applyVisibleOrder(order) {
   commit("Task order updated");
 }
 // A single gesture owns the timer, floating card and event cleanup, even if
-// a search, filter or another tab replaces the original task row.
+// a filter or another tab replaces the original task row.
 let reorderGesture = null;
 let settlingCleanup = null;
 function cancelReorder(redraw = true) {
