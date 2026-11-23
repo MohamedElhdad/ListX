@@ -792,6 +792,21 @@ if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
             ) || 0;
         } catch {}
         let lastFocus = null;
+        let savedScroll = null;
+        const lockScroll = () => {
+          if (savedScroll) return;
+          savedScroll = { x: window.scrollX, y: window.scrollY, top: document.body.style.top };
+          document.body.style.top = `-${savedScroll.y}px`;
+          document.documentElement.classList.add("update-open");
+        };
+        const unlockScroll = () => {
+          if (!savedScroll) return;
+          const { x, y, top } = savedScroll;
+          document.documentElement.classList.remove("update-open");
+          document.body.style.top = top;
+          window.scrollTo({ left: x, top: y, behavior: "instant" });
+          savedScroll = null;
+        };
         const setInert = (on) => {
           document.body
             .querySelectorAll(":scope > *")
@@ -818,7 +833,9 @@ if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
           btns[next].focus();
         };
         const show = () => {
+          if (!overlay.hidden) return;
           lastFocus = document.activeElement;
+          lockScroll();
           overlay.hidden = false;
           setInert(true);
           document.addEventListener("keydown", trap, true);
@@ -827,11 +844,14 @@ if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
           errorText.hidden = !failed;
           laterBtn.hidden = !failed;
           if (failed) updateBtn.textContent = "Try again";
-          updateBtn.focus({ preventScroll: true });
+          // Focus the dialog, not its action, so opening never paints a
+          // button ring. Tab still reveals a clear green keyboard focus.
+          overlay.querySelector(".update-modal").focus({ preventScroll: true });
         };
         const hide = () => {
           overlay.hidden = true;
           setInert(false);
+          unlockScroll();
           document.removeEventListener("keydown", trap, true);
           if (lastFocus?.isConnected)
             lastFocus.focus({ preventScroll: true });

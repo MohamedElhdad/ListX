@@ -2014,10 +2014,18 @@ body {
 .toast { background:var(--surface);color:var(--text);border:1px solid var(--border);border-left:3px solid var(--accent);bottom:calc(18px + env(safe-area-inset-bottom,0px) + var(--keyboard-inset,0px));border-radius:14px;gap:12px;padding:10px 12px;font-size:13px;z-index:20; }
 .toast #undo-button { background:var(--accent);color:var(--accent-ink);border-radius:9px;padding:8px 14px;min-height:44px;font-size:13px;font-weight:700; }
 .toast #dismiss-toast { min-width:40px;min-height:44px;color:var(--muted); }
-/* Update modal: fixed colors so the green stays identical in every theme. */
+/* Lock the underlying page, including touch scrolling on mobile Safari.
+   JS saves/restores the scroll offset without changing task data. */
+html.update-open { overflow:hidden;overscroll-behavior:none; }
+html.update-open body { position:fixed;left:0;right:0;width:100%;overflow:hidden; }
+/* The update action stays green; only the wordmark follows the theme. */
 .update-overlay { position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(9,12,16,.62);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px); }
 .update-overlay[hidden] { display:none; }
 .update-modal { width:100%;max-width:340px;margin-bottom:12vh;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:18px;box-shadow:0 24px 70px #0008;padding:26px 24px 24px;text-align:center; }
+.update-modal:focus { outline:none; }
+.update-brand { white-space:nowrap;font-weight:850;letter-spacing:-.7px; }
+.update-modal #update-button:focus { outline:none; }
+.update-modal #update-button:focus-visible { outline:none;box-shadow:inset 0 0 0 2px #16a34a,0 0 0 3px color-mix(in srgb,#16a34a 25%,transparent); }
 .update-modal h2 { margin:0 0 10px;font-size:19px;line-height:1.35;font-weight:700; }
 .update-modal p { margin:0 0 20px;font-size:14px;line-height:1.6;color:var(--muted); }
 .update-modal #update-button { width:100%;min-height:48px;border-radius:12px;border:1.5px solid #16a34a;background:rgba(22,163,74,.12);color:#16a34a;font-size:15px;font-weight:700;letter-spacing:.2px; }
