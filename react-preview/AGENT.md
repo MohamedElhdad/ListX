@@ -11,7 +11,7 @@ A private, offline-first task list, installed as a PWA from GitHub Pages at `/Li
 3. Same update flow and update modal (section 8).
 4. Same offline behavior: after first load the app opens with no network.
 5. The launch-icon jump on Android is a known, accepted behavior. Leave it alone.
-6. Do not promise speed. Desktop measurements (warm cache, 3 tasks) show React opening slower than vanilla (about 102 ms vs 59 ms to first row at 1x, 530 vs 312 ms at 6x CPU throttle) with a longer blank moment on reload. Real phone speed is unmeasured.
+6. Do not promise speed. Desktop measurements (warm reload, 3 tasks, median): first paint vanilla 92 ms / React 88 ms at 1x and 252 / 184 ms at 6x CPU throttle (the prerendered shell paints the full layout with zero-state placeholders immediately); real task rows appear at vanilla 60 ms / React 122 ms at 1x and 324 / 594 ms at 6x. Real data still waits for the React bundle; the shell only makes that wait visible as a filled layout instead of a blank page. Real phone speed is unmeasured.
 7. Nothing is pushed to the live repo without the owner's explicit "ارفع" for that upload. Show first.
 8. Pushes use a temporary token scoped to the ListX repo only.
 
@@ -84,8 +84,9 @@ aria-labels on all icon buttons ("Open appearance settings", "Dismiss notificati
 
 ## 10. React build (v15-react), mapping
 Sections 1-9 describe v14, the reference behavior. This section describes the React implementation, which matches the vanilla app in all tests run but differs in internals: the whole UI mounts under one `#root` (display: contents), so the update modal sets `inert` on that single wrapper instead of on each direct child of body (same effect, different DOM); the service worker precache list is generated at build time with hashed asset names (one JS bundle instead of js/app.js); the cache name is `v15-react-preview2`; dialogs are React components, not static markup in index.html.
+v16-react changes (2026-11-24): (a) Fixed the stale drag controller in TaskPanel.jsx - the controller kept the first-render onApplyOrder, so a drop after any edit/add/toggle/delete wrote the page-load list back (edited names reverted; add-then-drag wrote null and corrupted the stored list). The controller now calls the latest function through a ref. (b) The empty-#root blank flash on reload (perceived as a shake) is gone: scripts/prerender.mjs renders the app's zero-data shell at build time (src/entry-server.jsx, renderToStaticMarkup) into index.html's #root; the client root replaces it in one commit on mount. UpdateOverlay returns null when `document` is undefined (build-time render has no DOM).
 Source note: the `src/`, `scripts/`, `public/` and build files named below belong to the retained React source project (kept locally by the owner), not to this repo. Only the built output in this `react-preview/` folder is published here.
-Project: Vite + React 18, `base: "./"`. `public/` has the untouched css, fonts, imgs, manifest. `scripts/postbuild.mjs` writes `dist/sw.js` with a hashed precache list (cache name `v15-react-preview2`). `index.html` keeps the pre-paint theme script.
+Project: Vite + React 18, `base: "./"`. `public/` has the untouched css, fonts, imgs, manifest. `scripts/postbuild.mjs` writes `dist/sw.js` with a hashed precache list (cache name `v16-react-preview`). `index.html` keeps the pre-paint theme script.
 - `src/App.jsx`: shell. `src/core/`: useAppearance, useToast, useKeyboardInset. `src/features/tasks/`: useTasks, TasksPage, TaskPanel, TaskDialogs, reorder.js. `src/components/`: Icons, SettingsDialog, UpdateOverlay, Toast, backdropClose. `src/storage.js` (prefix, safe get/set, task and appearance migration, same rules as section 4), `src/constants.js`, `src/updateFlow.js` (section 8; offers the modal only when the controlling worker is the one being updated).
 - Preview build: `npm run build:preview` uses namespace `listx-preview:` so it never touches production keys. Removal is described below (the preview's own kill-switch procedure and its limits).
 Verification scripts (puppeteer-core, headless Chrome) are in `scripts/`: test-a1, test-a2, test-b, visual.mjs (pixel compare of 9 themes, settings, edit, clear, migrations).
@@ -93,7 +94,8 @@ Known verified differences from v14: none found in the tested steady state (desk
 
 - Removal: (1) publish the kill-switch worker as `react-preview/sw.js` (a worker that deletes only `listx-preview:` caches and leaves live caches and data alone); (2) only later delete the folder, because deleting the folder alone leaves an installed worker and its cache in the browser. Tested: caches removed, live data and live offline intact. Not confirmed: the worker registration still appeared in the registration list after 3 reloads. Leftover `listx-preview:` localStorage keys are harmless.
 - Preview namespace: storage keys use `listx-preview:` and the cache prefix is `listx-preview:`, so the preview never reads or writes the live app's data. Removal: see above.
-- `v15-react-preview2` only adds this file and bumps the cache name so installed previews show the update modal.
+- Cache history: `v15-react-preview` first publish; `v15-react-preview2` docs bump; `v16-react-preview` stale-drag fix plus prerendered shell. A new cache name makes installed previews show the update modal.
+- Verification for v16-react: mutate-then-drag matrix (9 scenarios, 61 checks, scripts/mutate-drag-matrix.mjs) all pass; parity suite re-run (21 screenshot pairs pixel-identical to vanilla, 7 migration cases same, dialogs/Escape same); reload frame captures confirm no blank frame. Not re-run: the full old shell/update-flow suites, and real phone touch.
 
 ## 11. Not verified (device checks and gaps)
 Real Android WebAPK install and update, launch delay on the phone, touch drag on a real device, iOS Safari standalone behavior, and the true cause of any slow phone launch.
