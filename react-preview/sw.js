@@ -1,13 +1,13 @@
 "use strict";
 const CACHE_PREFIX = `listx-preview:${self.registration.scope}:`;
-const CACHE_NAME = CACHE_PREFIX + "v16-react-preview";
+const CACHE_NAME = CACHE_PREFIX + "v17-react-preview";
 // Install revalidates every asset instead of always re-downloading it:
 // unchanged files answer 304 and reuse the HTTP cache body, so an update
 // only downloads the files that actually changed. Changed or missing files
 // still arrive fresh from the network, exactly as before.
 const ASSETS = [
   "./",
-  "./assets/index-D9dCosNw.js",
+  "./assets/index-6dJclBDi.js",
   "./css/style.css",
   "./fonts/inter-var-latin.woff2",
   "./fonts/tajawal-400-arabic.woff2",
