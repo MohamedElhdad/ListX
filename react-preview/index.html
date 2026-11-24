@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en" data-theme="obsidian">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="apple-touch-icon" href="imgs/apple-touch-icon.png" />
+    <meta name="theme-color" content="#0a0b0d" />
+    <meta
+      name="description"
+      content="A little structure for a clearer day. ListX is your private, offline-first task list."
+    />
+    <link rel="icon" type="image/svg+xml" href="imgs/icon.svg" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="preload" href="fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="fonts/tajawal-500-arabic.woff2" as="font" type="font/woff2" crossorigin />
+    <title>ListX · Your space to focus</title>
+    <style>#root{display:contents}</style>
+    <script>
+      // Applies the saved theme/font/size before first paint so the app
+      // never flashes in the wrong appearance. Same keys the app uses.
+      try {
+        const override = "listx-preview:";
+        const prefix = override !== null ? override : location.pathname.toLowerCase().startsWith("/listx/") ? "listx:/ListX/:" : "";
+        const t = localStorage.getItem(prefix + "theme");
+        document.documentElement.dataset.theme = [
+          "dark",
+          "dark-blue",
+          "graphite",
+          "obsidian", "petrol", "espresso",
+          "light",
+          "light-blue",
+          "light-sage",
+        ].includes(t)
+          ? t
+          : "obsidian";
+        const a = JSON.parse(localStorage.getItem(prefix + "listx-appearance") || "{}");
+        if (["inter", "system", "editorial", "mono"].includes(a.font))
+          document.documentElement.dataset.font = a.font;
+        const v2 = { small: 14, compact: 15, comfortable: 16, large: 17 };
+        const v1 = { small: 14, compact: 15, comfortable: 17, large: 17 };
+        let px = 14;
+        if (a.sizeVersion === 3 && isFinite(parseFloat(a.sizePx)))
+          px = parseFloat(a.sizePx);
+        else if (Object.hasOwn(v2, a.size))
+          px = (a.sizeVersion === 2 ? v2 : v1)[a.size];
+        px = Math.min(22, Math.max(12, Math.round(px * 10) / 10));
+        document.documentElement.style.setProperty("--task-size", px + "px");
+      } catch {}
+    </script>
+    <script type="module" crossorigin src="./assets/index-BuGDCDOi.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
