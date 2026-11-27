@@ -1,6 +1,6 @@
 # AGENT.md: ListX (vanilla JS, live app), full reference
 
-Read this before changing anything. It records how ListX behaves so a change or refactor can keep every feature, modal, button and theme exactly as it is. This file documents the live vanilla JS app at the repo root (`/ListX/`). Behavior is as v14 (commit 075401f) plus v18: persisted filter and the Done-add toast. A separate React preview lives in `react-preview/` with its own AGENT.md; it is not the live app. If code and this file disagree, the code in the repo root is the truth.
+Read this before changing anything. It records how ListX behaves so a change or refactor can keep every feature, modal, button and theme exactly as it is. This file documents the live vanilla JS app at the repo root (`/ListX/`). Behavior is as v14 (commit 075401f) plus v18 (persisted filter, Done-add toast) and v19 (swipe to switch filters). A separate React preview lives in `react-preview/` with its own AGENT.md; it is not the live app. If code and this file disagree, the code in the repo root is the truth.
 
 ## 1. What ListX is
 A private, offline-first task list, installed as a PWA from GitHub Pages at `/ListX/`. No account, no server, no analytics. Data lives only in the browser's localStorage. Single page. English UI, but task text may be Arabic (auto direction, Tajawal font for Arabic glyphs).
@@ -19,7 +19,7 @@ A private, offline-first task list, installed as a PWA from GitHub Pages at `/Li
 - `index.html` (599 lines): all markup, including every dialog, the 9 theme buttons, the update overlay, a pre-paint script that sets `data-theme` and `data-font` from storage before first paint, and the manifest and icon links.
 - `js/app.js` (895 lines): all logic.
 - `css/style.css` (2055 lines): all styling. Themes are defined several times over (base blocks, later override blocks near lines 1194-1262, 1961-1964, 2003-2053). Later blocks win. Do not delete "duplicates" without pixel comparison.
-- `sw.js`: service worker, cache `listx:<scope>:v18` (v18: persisted filter and Done-add toast).
+- `sw.js`: service worker, cache `listx:<scope>:v19` (v18: persisted filter and Done-add toast; v19: swipe filters).
 - `manifest.json`: name ListX, standalone, portrait, start_url and scope `./`, background and theme color `#0a0b0d`, icons 192, 512, maskable 512.
 - `imgs/`: icon-192, icon-512, icon-maskable-512, apple-touch-icon, icon.svg.
 - `fonts/`: tajawal 400/500/700 arabic woff2, inter-var-latin woff2.
@@ -62,6 +62,7 @@ Layout: sidebar (brand ListX, nav "All tasks" with active count, connection stat
 - Delete: row button. Removes and shows toast with Undo (8 s). Undo restores order and state and keeps tasks added since.
 - Clear completed and Clear all: each opens a confirm dialog (Cancel focused). Confirm clears, toast with Undo (8 s). A new deletion replaces the previous undo.
 - Plain toasts last 5 s. Toast has a dismiss button. Toast sits above the mobile keyboard (`--keyboard-inset` from visualViewport).
+- Swipe filters: a quick horizontal swipe (at least 70px, mostly horizontal, under 0.6 s) on the task panel moves All -> Active -> Completed (swipe left = next, right = previous; stops at the ends), saves the filter and slides the list in. Ignored while an input/textarea/select has focus, when the touch starts on a text input, dialog, toast or within 28px of a screen edge, and during a reorder drag. CSS: `.task-panel { touch-action: pan-y }` and `overscroll-behavior-x: none` on html/body.
 - Reorder: each row has a drag handle. Mouse/touch drag and keyboard (focus handle, ArrowUp/ArrowDown move one slot, Home/End jump to top/bottom, with live announcement) reorder the visible subset inside their original model slots, hidden (filtered) tasks keep their positions. Reorder is cancelled on tab hide, blur, pagehide, resize, visualViewport resize and scroll. Save happens at drop.
 - Arabic task text gets class `ar` (Tajawal) and `dir=auto`.
 - Cross-tab sync: the `storage` event reloads tasks (clears undo and toast), theme, and appearance in other tabs.

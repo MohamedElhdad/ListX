@@ -402,6 +402,49 @@ document
   .forEach((button) =>
     button.addEventListener("click", () => setFilter(button.dataset.filter)),
   );
+// Swipe left/right on the task area to move between All, Active and Done.
+// A quick horizontal flick only: slow presses stay with drag-to-reorder and
+// vertical moves stay with scrolling.
+(function installFilterSwipe() {
+  const panel = $(".task-panel");
+  if (!panel) return;
+  let start = null;
+  panel.addEventListener("touchstart", (event) => {
+    start = null;
+    if (event.touches.length !== 1 || document.body.classList.contains("is-reordering")) return;
+    if (event.target.closest("input:not(.task-checkbox), textarea, select, [role='dialog'], .modal, .toast")) return;
+    const t = event.touches[0];
+    // Keyboard open (typing in the add field): never switch filters.
+    if (document.activeElement?.matches?.("input, textarea, select")) return;
+    // Leave the screen edges to the system back gesture.
+    if (t.clientX < 28 || t.clientX > innerWidth - 28) return;
+    start = { x: t.clientX, y: t.clientY, time: performance.now(), id: t.identifier, dragged: false };
+  }, { passive: true });
+  panel.addEventListener("touchmove", () => {
+    if (start && document.body.classList.contains("is-reordering")) start = null;
+  }, { passive: true });
+  panel.addEventListener("touchend", (event) => {
+    const s = start;
+    start = null;
+    if (!s || document.body.classList.contains("is-reordering")) return;
+    const t = Array.from(event.changedTouches).find((c) => c.identifier === s.id);
+    if (!t) return;
+    const dx = t.clientX - s.x, dy = t.clientY - s.y;
+    if (Math.abs(dx) < 70 || Math.abs(dy) > Math.abs(dx) * 0.5) return;
+    if (performance.now() - s.time > 600) return;
+    const i = FILTERS.indexOf(currentFilter);
+    const next = FILTERS[i + (dx < 0 ? 1 : -1)];
+    if (!next) return;
+    setFilter(next);
+    const list = $("#task-list");
+    if (list.animate) list.animate(
+      [{ transform: `translateX(${dx < 0 ? 28 : -28}px)`, opacity: 0.4 }, { transform: "translateX(0)", opacity: 1 }],
+      { duration: 200, easing: "cubic-bezier(.2,.75,.25,1)" },
+    );
+    $("#live-status").textContent = `Showing ${next === "completed" ? "done" : next} tasks`;
+  }, { passive: true });
+  panel.addEventListener("touchcancel", () => { start = null; }, { passive: true });
+})();
 $("#all-nav").addEventListener("click", () => {
   setFilter("all");
 });
