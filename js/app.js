@@ -65,7 +65,8 @@ function readTasks() {
 }
 let recoveryNeeded = false;
 let tasks = readTasks();
-let currentFilter = "all";
+const FILTERS = ["all", "active", "completed"];
+let currentFilter = FILTERS.includes(storage.get("filter")) ? storage.get("filter") : "all";
 let undoSnapshot = null;
 let toastTimer;
 const UNDO_DURATION = 8000;
@@ -373,23 +374,29 @@ $("#add-form").addEventListener("submit", (event) => {
   const text = $("#task-input").value.trim();
   if (!text || recoveryNeeded) return;
   tasks.push({ id: id(), text, done: false });
-  // Show a newly added task even when the user was in a filtered view.
-  setFilter("all");
+  // Keep the chosen filter. On Done the new task is hidden, so say where it went.
+  const hiddenByFilter = currentFilter === "completed";
   $("#task-input").value = "";
   storage.set("task-input", "", true);
   updateAdd();
   commit("Task added");
+  if (hiddenByFilter) showToast("Task added", false, "Find it in All or Active.");
   $("#task-input").focus();
 });
-function setFilter(filter) {
+function setFilter(filter, save = true) {
   currentFilter = filter;
+  if (save) storage.set("filter", filter);
+  syncFilterButtons();
+  render();
+}
+function syncFilterButtons() {
   document.querySelectorAll("[data-filter]").forEach((button) => {
-    const selected = button.dataset.filter === filter;
+    const selected = button.dataset.filter === currentFilter;
     button.classList.toggle("selected", selected);
     button.setAttribute("aria-pressed", selected);
   });
-  render();
 }
+syncFilterButtons();
 document
   .querySelectorAll("[data-filter]")
   .forEach((button) =>
@@ -480,9 +487,20 @@ function dismissToast() {
   $("#undo-button").hidden = true;
   undoSnapshot = null;
 }
-function showToast(message, undo = false) {
+function showToast(message, undo = false, detail = "") {
   clearTimeout(toastTimer);
-  $("#toast-message").textContent = message;
+  const box = $("#toast-message");
+  if (detail) {
+    const title = document.createElement("strong");
+    title.className = "toast-title";
+    title.textContent = message;
+    const sub = document.createElement("span");
+    sub.className = "toast-detail";
+    sub.textContent = detail;
+    box.replaceChildren(title, sub);
+  } else {
+    box.textContent = message;
+  }
   $("#undo-button").hidden = !undo;
   $("#toast").hidden = false;
   // Give Undo a generous but bounded lifetime; a new deletion restarts it.

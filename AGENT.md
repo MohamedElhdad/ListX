@@ -1,6 +1,6 @@
 # AGENT.md: ListX (vanilla JS, live app), full reference
 
-Read this before changing anything. It records how ListX behaves so a change or refactor can keep every feature, modal, button and theme exactly as it is. This file documents the live vanilla JS app at the repo root (`/ListX/`). The behavior is unchanged since v14 (commit 075401f). A separate React preview lives in `react-preview/` with its own AGENT.md; it is not the live app. If code and this file disagree, the code in the repo root is the truth.
+Read this before changing anything. It records how ListX behaves so a change or refactor can keep every feature, modal, button and theme exactly as it is. This file documents the live vanilla JS app at the repo root (`/ListX/`). Behavior is as v14 (commit 075401f) plus v18: persisted filter and the Done-add toast. A separate React preview lives in `react-preview/` with its own AGENT.md; it is not the live app. If code and this file disagree, the code in the repo root is the truth.
 
 ## 1. What ListX is
 A private, offline-first task list, installed as a PWA from GitHub Pages at `/ListX/`. No account, no server, no analytics. Data lives only in the browser's localStorage. Single page. English UI, but task text may be Arabic (auto direction, Tajawal font for Arabic glyphs).
@@ -19,7 +19,7 @@ A private, offline-first task list, installed as a PWA from GitHub Pages at `/Li
 - `index.html` (599 lines): all markup, including every dialog, the 9 theme buttons, the update overlay, a pre-paint script that sets `data-theme` and `data-font` from storage before first paint, and the manifest and icon links.
 - `js/app.js` (895 lines): all logic.
 - `css/style.css` (2055 lines): all styling. Themes are defined several times over (base blocks, later override blocks near lines 1194-1262, 1961-1964, 2003-2053). Later blocks win. Do not delete "duplicates" without pixel comparison.
-- `sw.js`: service worker, cache `listx:<scope>:v15-docs` (v15 only adds this file and bumps the cache name so installed apps show the update modal; no app code changed from v14).
+- `sw.js`: service worker, cache `listx:<scope>:v18` (v18: persisted filter and Done-add toast).
 - `manifest.json`: name ListX, standalone, portrait, start_url and scope `./`, background and theme color `#0a0b0d`, icons 192, 512, maskable 512.
 - `imgs/`: icon-192, icon-512, icon-maskable-512, apple-touch-icon, icon.svg.
 - `fonts/`: tajawal 400/500/700 arabic woff2, inter-var-latin woff2.
@@ -29,6 +29,7 @@ Prefix: `listx:/ListX/:` when the path starts with `/listx/` (case-insensitive),
 - `tasks`: JSON array of `{id, text, done}`.
 - `theme`: palette name string. Default `obsidian`.
 - `listx-appearance`: JSON `{font, sizePx, sizeVersion: 3}`.
+- `filter`: `all`, `active` or `completed`. The selected filter, restored on reload; any other value falls back to `all`.
 - `line`: legacy array of completed task strings (read only, for migration).
 - sessionStorage `task-input`: unsent text in the add field, restored on reload.
 - sessionStorage `listx-update-attempts`, `listx-update-skip`: update modal state (section 8). Not prefixed.
@@ -55,7 +56,7 @@ Fonts: `inter` (default), `system`, `editorial`, `mono`, set as `html[data-font]
 
 ## 6. UI and behavior
 Layout: sidebar (brand ListX, nav "All tasks" with active count, connection status, settings button) and main column: a date label (long weekday, month, day, English) in the header, overview card (total, active, completed, progress ring with percent and caption), task panel (add form, filters All/Active/Completed with counts, list summary line, list, "Clear completed" shown only when something is done), "Clear all" button, empty state.
-- Add: Enter or button. Empty or whitespace blocked. Add switches filter to All, clears the field and sessionStorage draft, refocuses the field, toast "Task added".
+- Add: Enter or button. Empty or whitespace blocked. Add keeps the current filter (it no longer switches to All), clears the field and sessionStorage draft, refocuses the field, toast "Task added" only when the add happens on Done (title "Task added", detail "Find it in All or Active.", 5s, themed with --text and --muted); on All and Active the new task is visible so there is no toast.
 - Toggle: checkbox. Announcements "Task completed" / "Task marked active". Focus returns to the replaced row's checkbox or the current filter button.
 - Edit: pencil button or double-click on text. Opens the Edit dialog, input filled and its whole text selected. Save disabled while empty. Enter or Save stores trimmed text, toast "Task updated". Cancel, Escape, or backdrop click closes without saving. Focus returns to the row's action button.
 - Delete: row button. Removes and shows toast with Undo (8 s). Undo restores order and state and keeps tasks added since.
